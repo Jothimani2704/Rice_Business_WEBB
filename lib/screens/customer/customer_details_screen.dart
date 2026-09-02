@@ -67,7 +67,11 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -76,8 +80,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,11 +105,11 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Customer Details',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -147,11 +152,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -186,8 +190,8 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                 children: [
                                   Text(
                                     name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -237,7 +241,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                         height: 8,
                                         decoration: BoxDecoration(
                                           color: isActive
-                                              ? Colors.greenAccent
+                                              ? Theme.of(context).colorScheme.primary
                                               : Colors.redAccent,
                                           shape: BoxShape.circle,
                                         ),
@@ -247,7 +251,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                         isActive ? 'Active' : 'Inactive',
                                         style: TextStyle(
                                           color: isActive
-                                              ? Colors.greenAccent
+                                              ? Theme.of(context).colorScheme.primary
                                               : Colors.redAccent,
                                           fontSize: 12,
                                         ),
@@ -260,7 +264,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: Theme.of(context).colorScheme.primary
@@ -283,19 +287,18 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'Outstanding Balance',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                               ),
                             ),
@@ -305,7 +308,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                               style: TextStyle(
                                 color: outstanding > 0
                                     ? Colors.redAccent
-                                    : Colors.greenAccent,
+                                    : Theme.of(context).colorScheme.primary,
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -346,10 +349,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       const SizedBox(height: 24),
 
                       // Quick Actions
-                      const Text(
+                      Text(
                         'Quick Actions',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -399,10 +402,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Recent Transactions',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
@@ -433,7 +436,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                           decoration: BoxDecoration(
                             border: Border(
                               bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                               ),
                             ),
                           ),
@@ -455,7 +458,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                       : Icons.trending_down,
                                   color: tx['isPositive']
                                       ? Colors.redAccent
-                                      : Colors.greenAccent,
+                                      : Theme.of(context).colorScheme.primary,
                                   size: 20,
                                 ),
                               ),
@@ -469,7 +472,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                       style: TextStyle(
                                         color: tx['isPositive']
                                             ? Colors.redAccent
-                                            : Colors.greenAccent,
+                                            : Theme.of(context).colorScheme.primary,
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -503,7 +506,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                     style: TextStyle(
                                       color: tx['isPositive']
                                           ? Colors.redAccent
-                                          : Colors.greenAccent,
+                                          : Theme.of(context).colorScheme.primary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -540,16 +543,16 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -590,9 +593,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+            color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
           ),
           child: Column(
             children: [

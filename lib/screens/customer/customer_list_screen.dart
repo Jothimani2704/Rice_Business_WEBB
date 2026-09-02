@@ -5,6 +5,7 @@ import '../../services/customer_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'customer_form_screen.dart';
 import 'customer_details_screen.dart';
+import '../../utils/app_events.dart';
 
 class CustomerListScreen extends StatefulWidget {
   const CustomerListScreen({super.key});
@@ -22,6 +23,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   void initState() {
     super.initState();
     _fetchCustomers();
+    AppEvents.refreshData.addListener(_fetchCustomers);
+  }
+
+  @override
+  void dispose() {
+    AppEvents.refreshData.removeListener(_fetchCustomers);
+    super.dispose();
   }
 
   Future<void> _fetchCustomers() async {
@@ -61,7 +69,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -70,8 +82,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Stack(
             children: [
@@ -98,10 +111,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Customers',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -109,7 +122,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                               Text(
                                 'Manage customer accounts',
                                 style: TextStyle(
-                                  color: Colors.greenAccent.withValues(
+                                  color: Theme.of(context).colorScheme.primary.withValues(
                                     alpha: 0.8,
                                   ),
                                   fontSize: 13,
@@ -143,7 +156,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
@@ -156,7 +169,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
-                              style: const TextStyle(color: Colors.white),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                               decoration: InputDecoration(
                                 hintText: 'Search name or phone',
                                 hintStyle: TextStyle(
@@ -170,10 +183,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.1),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                               ),
                             ),
                             child: Icon(
@@ -212,11 +225,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                         horizontal: 20,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+                            : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.05),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                         ),
                       ),
                       child: Row(
@@ -227,7 +241,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.05),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
@@ -266,14 +280,14 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           Container(
                             height: 30,
                             width: 1,
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                           Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.05),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
@@ -299,7 +313,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                   Text(
                                     'Total Outstanding',
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 12,
@@ -318,10 +332,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                   // Customer List
                   Expanded(
                     child: filteredCustomers.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
                               'No customers found',
-                              style: TextStyle(color: Colors.white54),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                             ),
                           )
                         : ListView.builder(
@@ -364,11 +378,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor
-                                        .withValues(alpha: 0.5),
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+                                        : Theme.of(context).colorScheme.surface,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withValues(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(
                                         alpha: 0.05,
                                       ),
                                     ),
@@ -410,8 +425,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                           children: [
                                             Text(
                                               name,
-                                              style: const TextStyle(
-                                                color: Colors.white,
+                                              style: TextStyle(
+                                                color: Theme.of(context).colorScheme.onSurface,
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -434,7 +449,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                                   height: 8,
                                                   decoration: BoxDecoration(
                                                     color: isActive
-                                                        ? Colors.greenAccent
+                                                        ? Theme.of(context).colorScheme.primary
                                                         : Colors.redAccent,
                                                     shape: BoxShape.circle,
                                                   ),
@@ -446,7 +461,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                                       : 'Inactive',
                                                   style: TextStyle(
                                                     color: isActive
-                                                        ? Colors.greenAccent
+                                                        ? Theme.of(context).colorScheme.primary
                                                         : Colors.redAccent,
                                                     fontSize: 12,
                                                   ),
@@ -492,7 +507,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                                 style: TextStyle(
                                                   color: due > 0
                                                       ? Colors.redAccent
-                                                      : Colors.greenAccent,
+                                                      : Theme.of(context).colorScheme.primary,
                                                   fontSize: 13,
                                                   fontWeight: due > 0
                                                       ? FontWeight.w500
@@ -571,13 +586,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.add, color: Colors.black, size: 20),
+                        children: [
+                          Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Add Customer',
                             style: TextStyle(
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
@@ -608,7 +623,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.transparent
-              : Colors.white.withValues(alpha: 0.05),
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
@@ -622,7 +637,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           style: TextStyle(
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
-                : Colors.greenAccent.withValues(alpha: 0.8),
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
           ),

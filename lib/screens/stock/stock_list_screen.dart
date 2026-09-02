@@ -78,7 +78,11 @@ class _StockListScreenState extends State<StockListScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -87,8 +91,9 @@ class _StockListScreenState extends State<StockListScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,10 +117,10 @@ class _StockListScreenState extends State<StockListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Stock',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
@@ -123,7 +128,7 @@ class _StockListScreenState extends State<StockListScreen> {
                           Text(
                             'Track rice inventory',
                             style: TextStyle(
-                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                               fontSize: 13,
                             ),
                           ),
@@ -160,11 +165,11 @@ class _StockListScreenState extends State<StockListScreen> {
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                           ),
                         ),
                         child: TextField(
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             icon: Icon(
                               Icons.search,
@@ -186,7 +191,7 @@ class _StockListScreenState extends State<StockListScreen> {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.greenAccent.withValues(alpha: 0.5),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Icon(
@@ -210,9 +215,9 @@ class _StockListScreenState extends State<StockListScreen> {
                       title: 'Total Stock',
                       value: numFormat.format(_totalBags),
                       subtitle: 'Bags',
-                      iconColor: Colors.white,
-                      iconBgColor: Colors.white.withValues(alpha: 0.2),
-                      valueColor: Colors.white,
+                      iconColor: Theme.of(context).colorScheme.onSurface,
+                      iconBgColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                      valueColor: Theme.of(context).colorScheme.onSurface,
                     ),
                     const SizedBox(width: 12),
                     _buildMetricCard(
@@ -223,7 +228,7 @@ class _StockListScreenState extends State<StockListScreen> {
                       iconColor: Theme.of(context).colorScheme.primary,
                       iconBgColor: Theme.of(context).colorScheme.primary
                           .withValues(alpha: 0.1),
-                      valueColor: Colors.white,
+                      valueColor: Theme.of(context).colorScheme.onSurface,
                     ),
                     const SizedBox(width: 12),
                     _buildMetricCard(
@@ -233,7 +238,7 @@ class _StockListScreenState extends State<StockListScreen> {
                       subtitle: 'Products',
                       iconColor: Colors.redAccent,
                       iconBgColor: Colors.redAccent.withValues(alpha: 0.1),
-                      valueColor: Colors.white,
+                      valueColor: Theme.of(context).colorScheme.onSurface,
                       titleColor: Colors.redAccent,
                     ),
                   ],
@@ -274,8 +279,8 @@ class _StockListScreenState extends State<StockListScreen> {
                           alignment: Alignment.center,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.add, color: Colors.black, size: 20),
+                            children: [
+                              Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary, size: 20),
                               SizedBox(width: 8),
                               Text(
                                 'Stock Inward',
@@ -352,10 +357,10 @@ class _StockListScreenState extends State<StockListScreen> {
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: const Text(
+                child: Text(
                   'Current Inventory',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -407,9 +412,9 @@ class _StockListScreenState extends State<StockListScreen> {
       width: 140,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,7 +434,7 @@ class _StockListScreenState extends State<StockListScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: titleColor ?? Colors.greenAccent,
+                    color: titleColor ?? Theme.of(context).colorScheme.primary,
                     fontSize: 12,
                   ),
                   maxLines: 1,
@@ -474,7 +479,7 @@ class _StockListScreenState extends State<StockListScreen> {
           color: isSelected
               ? (isAlert
                     ? Colors.redAccent.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.1))
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1))
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -482,7 +487,7 @@ class _StockListScreenState extends State<StockListScreen> {
                 ? Colors.redAccent.withValues(alpha: 0.8)
                 : (isSelected
                       ? Theme.of(context).colorScheme.primary
-                      : Colors.white.withValues(alpha: 0.3)),
+                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
           ),
         ),
         child: Text(
@@ -510,7 +515,7 @@ class _StockListScreenState extends State<StockListScreen> {
     } else if (isLowStock) {
       statusColor = Colors.redAccent;
     } else {
-      statusColor = Colors.greenAccent;
+      statusColor = Theme.of(context).colorScheme.primary;
     }
 
     return GestureDetector(
@@ -527,9 +532,9 @@ class _StockListScreenState extends State<StockListScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,8 +562,8 @@ class _StockListScreenState extends State<StockListScreen> {
                       Expanded(
                         child: Text(
                           item['name'],
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -576,7 +581,7 @@ class _StockListScreenState extends State<StockListScreen> {
                   Text(
                     '${item['brand']} • ${item['weight']}',
                     style: TextStyle(
-                      color: Colors.greenAccent.withValues(alpha: 0.8),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                       fontSize: 13,
                     ),
                   ),
@@ -592,7 +597,7 @@ class _StockListScreenState extends State<StockListScreen> {
                                 ? Colors.redAccent
                                 : (isLowStock
                                       ? Colors.redAccent
-                                      : Colors.greenAccent),
+                                      : Theme.of(context).colorScheme.primary),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -601,7 +606,7 @@ class _StockListScreenState extends State<StockListScreen> {
                       Container(
                         width: 1,
                         height: 20,
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                       ),
                       const SizedBox(width: 12),
                       Text(

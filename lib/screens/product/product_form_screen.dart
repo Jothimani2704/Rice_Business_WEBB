@@ -30,8 +30,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   final Color primaryGreen = const Color(0xFF0F2C1A); // Darker green
   final Color secondaryGreen = const Color(0xFF163E26); // Lighter green
   final Color accentGold = const Color(0xFFD4AF37);
-
-  final Color textPrimary = Colors.white;
+  Color get textPrimary => Theme.of(context).colorScheme.onSurface;
 
   final Color surfaceColor = const Color(0xFF163E26)
       .withOpacity(0.5); // Card background
@@ -154,7 +153,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ? 'Update product information'
                   : 'Create a new rice product',
               style: TextStyle(
-                color: Colors.greenAccent.withValues(alpha: 0.8),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
               ),
@@ -221,7 +220,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Cancel',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -256,7 +255,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                     _isEditing
                                         ? 'Update Product'
                                         : 'Save Product',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -316,7 +315,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 const SizedBox(height: 8),
                 Text(
                   '${widget.product?['brand']} • ${widget.product?['weight']}',
-                  style: TextStyle(color: Colors.greenAccent, fontSize: 14),
+                  style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 14),
                 ),
               ],
             ),
@@ -453,7 +452,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ),
             child: Icon(
               Icons.info_outline,
-              color: Colors.greenAccent,
+              color: Theme.of(context).colorScheme.primary,
               size: 20,
             ),
           ),
@@ -465,7 +464,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 Text(
                   'Initial Stock',
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: Theme.of(context).colorScheme.primary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -567,7 +566,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   Text(
                     _isActive ? 'Active' : 'Inactive',
                     style: TextStyle(
-                      color: _isActive ? Colors.greenAccent : Colors.redAccent,
+                      color: _isActive ? Theme.of(context).colorScheme.primary : Colors.redAccent,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -649,7 +648,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),

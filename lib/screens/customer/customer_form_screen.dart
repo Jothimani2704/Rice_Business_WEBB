@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/customer_service.dart';
+import '../../utils/app_events.dart';
 
 class CustomerFormScreen extends StatefulWidget {
   final dynamic
@@ -88,6 +89,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
       });
 
       if (result != null) {
+        AppEvents.triggerRefresh();
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -95,7 +97,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
               isEditMode
                   ? 'Customer updated successfully'
                   : 'Customer added successfully',
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             backgroundColor: Colors.green,
           ),
@@ -107,7 +109,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
               isEditMode
                   ? 'Failed to update customer'
                   : 'Failed to add customer',
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             backgroundColor: Colors.redAccent,
           ),
@@ -135,7 +137,11 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -144,8 +150,9 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             children: [
@@ -173,8 +180,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                         children: [
                           Text(
                             isEditMode ? 'Edit Customer' : 'Add New Customer',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
@@ -184,7 +191,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                 ? 'Update customer information'
                                 : 'Enter customer details below',
                             style: TextStyle(
-                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                               fontSize: 13,
                             ),
                           ),
@@ -238,8 +245,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                           _nameController.text.isEmpty
                               ? 'Unknown'
                               : _nameController.text,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -251,8 +258,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.4),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.4) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: Theme.of(context).colorScheme.primary
@@ -265,10 +271,10 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Customer Information',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -330,7 +336,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                   child: Text(
                                     'Existing outstanding amount, if any',
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 12,
@@ -351,7 +357,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                     color: Colors.transparent,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withValues(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(
                                         alpha: 0.2,
                                       ),
                                     ),
@@ -367,7 +373,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                             height: 10,
                                             decoration: BoxDecoration(
                                               color: _isActive
-                                                  ? Colors.greenAccent
+                                                  ? Theme.of(context).colorScheme.primary
                                                   : Colors.redAccent,
                                               shape: BoxShape.circle,
                                             ),
@@ -377,8 +383,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                             _isActive ? 'Active' : 'Inactive',
                                             style: TextStyle(
                                               color: _isActive
-                                                  ? Colors.greenAccent
-                                                  : Colors.white,
+                                                  ? Theme.of(context).colorScheme.primary
+                                                  : Theme.of(context).colorScheme.onSurface,
                                               fontSize: 15,
                                             ),
                                           ),
@@ -394,7 +400,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                         activeThumbColor: Theme.of(context)
                                             .colorScheme
                                             .primary,
-                                        activeTrackColor: Colors.greenAccent
+                                        activeTrackColor: Theme.of(context).colorScheme.primary
                                             .withValues(alpha: 0.3),
                                       ),
                                     ],
@@ -408,7 +414,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                   child: Text(
                                     'Customer can make purchases',
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 12,
@@ -427,8 +433,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor
-                                .withValues(alpha: 0.4),
+                            color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.4) : Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: Theme.of(context).colorScheme.primary
@@ -483,7 +488,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                     Text(
                                       'Balance cannot be edited directly',
                                       style: TextStyle(
-                                        color: Colors.greenAccent.withValues(
+                                        color: Theme.of(context).colorScheme.primary.withValues(
                                           alpha: 0.8,
                                         ),
                                         fontSize: 12,
@@ -511,8 +516,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor
-                                .withValues(alpha: 0.4),
+                            color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.4) : Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: Theme.of(context).colorScheme.primary
@@ -533,7 +537,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                   color: Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: Row(
@@ -547,7 +551,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                           height: 10,
                                           decoration: BoxDecoration(
                                             color: _isActive
-                                                ? Colors.greenAccent
+                                                ? Theme.of(context).colorScheme.primary
                                                 : Colors.redAccent,
                                             shape: BoxShape.circle,
                                           ),
@@ -557,8 +561,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                           _isActive ? 'Active' : 'Inactive',
                                           style: TextStyle(
                                             color: _isActive
-                                                ? Colors.greenAccent
-                                                : Colors.white,
+                                                ? Theme.of(context).colorScheme.primary
+                                                : Theme.of(context).colorScheme.onSurface,
                                             fontSize: 15,
                                           ),
                                         ),
@@ -574,7 +578,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                       activeThumbColor: Theme.of(context)
                                           .colorScheme
                                           .primary,
-                                      activeTrackColor: Colors.greenAccent
+                                      activeTrackColor: Theme.of(context).colorScheme.primary
                                           .withValues(alpha: 0.3),
                                     ),
                                   ],
@@ -672,8 +676,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        Icons.check,
-                                        color: Colors.black,
+                                        Icons.check, color: Theme.of(context).colorScheme.onPrimary,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -681,7 +684,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                         isEditMode
                                             ? 'Update Customer'
                                             : 'Save Customer',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
@@ -728,7 +731,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   }) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
@@ -748,7 +751,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
           ),
         ),
         prefixText: prefixText,
-        prefixStyle: const TextStyle(color: Colors.white, fontSize: 15),
+        prefixStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
         filled: true,
         fillColor: Colors.transparent,
         contentPadding: const EdgeInsets.symmetric(
@@ -757,11 +760,11 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

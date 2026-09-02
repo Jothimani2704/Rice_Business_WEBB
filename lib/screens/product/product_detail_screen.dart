@@ -51,7 +51,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final minStock = (widget.product['minimumStockLevel'] as num).toDouble();
     final isHealthy = currentStock > minStock;
     final progressColor = isHealthy
-        ? Colors.greenAccent
+        ? Theme.of(context).colorScheme.primary
         : (currentStock > 0
               ? Theme.of(context).colorScheme.primary
               : Colors.redAccent);
@@ -68,7 +68,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -77,8 +81,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,11 +106,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Product Details',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -136,11 +141,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -149,7 +153,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               width: 80,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Center(
@@ -167,8 +171,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 children: [
                                   Text(
                                     widget.product['productName'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -177,7 +181,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   Text(
                                     widget.product['brandName'],
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 14,
@@ -201,7 +205,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: Colors.greenAccent.withValues(
+                                        color: Theme.of(context).colorScheme.primary.withValues(
                                           alpha: 0.5,
                                         ),
                                       ),
@@ -213,8 +217,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         Container(
                                           width: 8,
                                           height: 8,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.greenAccent,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -223,8 +227,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           widget.product['isActive']
                                               ? 'Active'
                                               : 'Inactive',
-                                          style: const TextStyle(
-                                            color: Colors.greenAccent,
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.primary,
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -244,11 +248,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -278,7 +281,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           Text(
                                             numFormat.format(currentStock),
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 28,
                                               fontWeight: FontWeight.bold,
@@ -302,7 +305,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Container(
                                   width: 1,
                                   height: 40,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -328,7 +331,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           Text(
                                             numFormat.format(minStock),
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 28,
                                               fontWeight: FontWeight.bold,
@@ -352,7 +355,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Container(
                                   width: 1,
                                   height: 40,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -401,7 +404,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             const SizedBox(height: 16),
                             LinearProgressIndicator(
                               value: progressValue,
-                              backgroundColor: Colors.white.withValues(
+                              backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(
                                 alpha: 0.1,
                               ),
                               color: progressColor,
@@ -425,10 +428,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text(
+                      Text(
                         'Pricing & Value',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -439,11 +442,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -468,7 +470,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       Text(
                                         '₹${numFormat.format(purchasePrice)}',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 20,
@@ -480,7 +482,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Container(
                                   width: 1,
                                   height: 40,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -501,7 +503,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       Text(
                                         '₹${numFormat.format(sellingPrice)}',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 20,
@@ -512,9 +514,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                               ],
                             ),
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(vertical: 12.0),
-                              child: Divider(color: Colors.white24),
+                              child: Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
                             ),
                             Row(
                               children: [
@@ -541,7 +543,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           Text(
                                             '₹${numFormat.format(margin)}',
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 20,
                                             ),
@@ -550,7 +552,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           Text(
                                             '/ bag',
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 13,
                                             ),
@@ -563,7 +565,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Container(
                                   width: 1,
                                   height: 40,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -584,7 +586,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       Text(
                                         '₹${numFormat.format(stockValue)}',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 20,
@@ -600,10 +602,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text(
+                      Text(
                         'Quick Actions',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -614,11 +616,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -645,7 +646,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             Container(
                               width: 1,
                               height: 40,
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                             ),
                             _buildActionItem(
                               icon: Icons.shopping_bag_outlined,
@@ -662,7 +663,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             Container(
                               width: 1,
                               height: 40,
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                             ),
                             _buildActionItem(
                               icon: Icons.history,
@@ -679,7 +680,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             Container(
                               width: 1,
                               height: 40,
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                             ),
                             _buildActionItem(
                               icon: Icons.edit_note,
@@ -700,10 +701,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text(
+                      Text(
                         'Product Information',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -714,11 +715,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -727,25 +727,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               'Product Name',
                               widget.product['productName'],
                             ),
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.0),
-                              child: Divider(color: Colors.white24),
+                              child: Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
                             ),
                             _buildInfoRow(
                               'Brand Name',
                               widget.product['brandName'],
                             ),
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.0),
-                              child: Divider(color: Colors.white24),
+                              child: Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
                             ),
                             _buildInfoRow(
                               'Bag Size',
                               '${widget.product['bagSize']} kg',
                             ),
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.0),
-                              child: Divider(color: Colors.white24),
+                              child: Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -766,7 +766,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.5,
                                       ),
                                     ),
@@ -778,8 +778,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       Container(
                                         width: 6,
                                         height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.greenAccent,
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.primary,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -788,8 +788,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         widget.product['isActive']
                                             ? 'Active'
                                             : 'Inactive',
-                                        style: const TextStyle(
-                                          color: Colors.greenAccent,
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
                                           fontSize: 11,
                                         ),
                                       ),
@@ -806,10 +806,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Recent Stock Movements',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -908,7 +908,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             fontSize: 13,
           ),
         ),
-        Text(value, style: TextStyle(color: Colors.white, fontSize: 13)),
+        Text(value, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13)),
       ],
     );
   }
@@ -920,7 +920,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     // The C# enum: In = 1, Out = 2, Adjustment = 3
     final isOut = history['transactionType'] == 2;
 
-    final iconColor = isOut ? Colors.redAccent : Colors.greenAccent;
+    final iconColor = isOut ? Colors.redAccent : Theme.of(context).colorScheme.primary;
     final icon = isOut ? Icons.arrow_upward : Icons.arrow_downward;
     final typeText = isOut ? 'OUT' : 'IN';
     final sign = isOut ? '-' : '+';
@@ -941,9 +941,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -986,7 +986,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Container(
             width: 1,
             height: 30,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -996,7 +996,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               children: [
                 Text(
                   dateStr,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -1014,7 +1014,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Container(
             width: 1,
             height: 30,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1038,7 +1038,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Text(
                       numFormat.format(balance),
                       style: TextStyle(
-                        color: Colors.greenAccent.withValues(alpha: 0.8),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1047,7 +1047,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Text(
                       'Bags',
                       style: TextStyle(
-                        color: Colors.greenAccent.withValues(alpha: 0.8),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                         fontSize: 10,
                       ),
                     ),

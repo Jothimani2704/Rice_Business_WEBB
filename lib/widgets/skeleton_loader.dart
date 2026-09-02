@@ -34,6 +34,8 @@ class DashboardSkeleton extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
           gradient: Theme.of(context).brightness == Brightness.dark

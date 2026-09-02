@@ -23,34 +23,54 @@ class ApiClient {
 
   static Future<dynamic> get(String endpoint) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    final response = await http.get(url, headers: await _getHeaders());
-    return _handleResponse(response);
+    try {
+      final response = await http.get(url, headers: await _getHeaders());
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(503, 'Cannot connect to the server. Is the backend running?');
+    }
   }
 
   static Future<dynamic> post(String endpoint, {dynamic body}) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    final response = await http.post(
-      url,
-      headers: await _getHeaders(),
-      body: body != null ? jsonEncode(body) : null,
-    );
-    return _handleResponse(response);
+    try {
+      final response = await http.post(
+        url,
+        headers: await _getHeaders(),
+        body: body != null ? jsonEncode(body) : null,
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(503, 'Cannot connect to the server. Is the backend running?');
+    }
   }
 
   static Future<dynamic> put(String endpoint, {dynamic body}) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    final response = await http.put(
-      url,
-      headers: await _getHeaders(),
-      body: body != null ? jsonEncode(body) : null,
-    );
-    return _handleResponse(response);
+    try {
+      final response = await http.put(
+        url,
+        headers: await _getHeaders(),
+        body: body != null ? jsonEncode(body) : null,
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(503, 'Cannot connect to the server. Is the backend running?');
+    }
   }
 
   static Future<dynamic> delete(String endpoint) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    final response = await http.delete(url, headers: await _getHeaders());
-    return _handleResponse(response);
+    try {
+      final response = await http.delete(url, headers: await _getHeaders());
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(503, 'Cannot connect to the server. Is the backend running?');
+    }
   }
 
   static dynamic _handleResponse(http.Response response) {

@@ -9,6 +9,7 @@ import '../sales/sale_form_screen.dart';
 import '../stock/stock_form_screen.dart';
 import '../payment/payment_form_screen.dart';
 import '../customer/customer_form_screen.dart';
+import '../../utils/app_events.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,6 +26,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _fetchSummary();
+    AppEvents.refreshData.addListener(_fetchSummary);
+  }
+
+  @override
+  void dispose() {
+    AppEvents.refreshData.removeListener(_fetchSummary);
+    super.dispose();
   }
 
   Future<void> _fetchSummary() async {
@@ -60,7 +68,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? null
+              : Theme.of(context).scaffoldBackgroundColor,
           gradient: Theme.of(context).brightness == Brightness.dark
               ? RadialGradient(
                   center: const Alignment(0, -0.6),
@@ -109,7 +119,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
                               ),
                             ),
                             Text(
@@ -179,8 +188,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(height: 8),
                             Text(
                               '₹${numFormat.format(todaysSalesAmount)}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
@@ -209,17 +218,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Row(
-                                    children: const [
+                                    children: [
                                       Icon(
                                         Icons.arrow_upward,
-                                        color: Colors.greenAccent,
+                                        color: Theme.of(context).colorScheme.primary,
                                         size: 12,
                                       ),
                                       SizedBox(width: 4),
                                       Text(
                                         '+% Today',
                                         style: TextStyle(
-                                          color: Colors.greenAccent,
+                                          color: Theme.of(context).colorScheme.primary,
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -235,7 +244,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Icon(
                         Icons.bar_chart,
                         size: 80,
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                       ),
                     ],
                   ),
@@ -254,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'Collected',
                       value: '₹${numFormat.format(todaysPaymentCollection)}',
                       icon: Icons.account_balance_wallet,
-                      iconColor: Colors.greenAccent,
+                      iconColor: Theme.of(context).colorScheme.primary,
                       backgroundColor: Colors.green.withValues(alpha: 0.1),
                     ),
                     DashboardStatCard(
@@ -387,7 +396,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Colors.redAccent.withValues(alpha: 0.5),
@@ -400,10 +409,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(Icons.image, color: Colors.white54),
+                            child: Icon(Icons.image, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -412,8 +421,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               children: [
                                 Text(
                                   '${item['productName']} (${item['brandName']})',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -494,10 +502,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
           width: 1,
         ),
       ),
@@ -513,7 +521,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             child: Icon(
               icon,
-              color: isSale ? Colors.greenAccent : Colors.blueAccent,
+              color: isSale ? Theme.of(context).colorScheme.primary : Colors.blueAccent,
               size: 20,
             ),
           ),
@@ -524,8 +532,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -549,7 +556,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 amount,
                 style: TextStyle(
-                  color: isSale ? Colors.greenAccent : Colors.white,
+                  color: isSale ? Colors.green : Theme.of(context).colorScheme.onSurface,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),

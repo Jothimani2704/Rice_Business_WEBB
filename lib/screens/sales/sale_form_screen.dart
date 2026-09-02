@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/customer_service.dart';
 import '../../services/product_service.dart';
 import '../../services/sale_service.dart';
+import '../../utils/app_events.dart';
 
 class SaleFormScreen extends StatefulWidget {
   final Map<String, dynamic>? existingSale;
@@ -121,7 +122,11 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -130,8 +135,9 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: _isLoading
               ? Center(
@@ -196,8 +202,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                   children: [
                     Text(
                       _isEditMode ? 'Edit Sale' : 'New Sale',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -232,7 +238,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       ? 'Correct Sale #${widget.existingSale!['id'].toString().padLeft(4, '0')}'
                       : 'Create customer bill',
                   style: TextStyle(
-                    color: Colors.greenAccent.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                     fontSize: 13,
                   ),
                 ),
@@ -301,7 +307,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+              color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: Theme.of(context).colorScheme.primary
@@ -317,14 +323,14 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     color: Colors.transparent,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.greenAccent.withValues(alpha: 0.5),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Center(
                     child: Text(
                       _selectedCustomer!['name'].substring(0, 2).toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.greenAccent,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -338,8 +344,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     children: [
                       Text(
                         _selectedCustomer!['name'],
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -348,7 +354,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       Text(
                         _selectedCustomer!['mobileNumber'] ?? '',
                         style: TextStyle(
-                          color: Colors.greenAccent.withValues(alpha: 0.8),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                           fontSize: 13,
                         ),
                       ),
@@ -388,7 +394,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₹${numFormat.format(_selectedCustomer!['currentBalance'])}',
+                      '₹${numFormat.format(_selectedCustomer!['currentBalance'] ?? _selectedCustomer!['outstandingBalance'] ?? 0)}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 16,
@@ -424,10 +430,10 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.greenAccent.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.greenAccent.withValues(alpha: 0.5),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Row(
@@ -435,16 +441,16 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: const BoxDecoration(
-                              color: Colors.greenAccent,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             'Active',
                             style: TextStyle(
-                              color: Colors.greenAccent,
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 12,
                             ),
                           ),
@@ -457,54 +463,61 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
             ),
           )
         else
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary
-                    .withValues(alpha: 0.5),
-              ),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<Map<String, dynamic>>(
-                isExpanded: true,
-                hint: Row(
-                  children: [
-                    Icon(
-                      Icons.search,
-                      color: Theme.of(context).colorScheme.outline,
-                      size: 20,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return DropdownMenu<Map<String, dynamic>>(
+                width: constraints.maxWidth,
+                hintText: 'Search and select customer',
+                textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                inputDecorationTheme: InputDecorationTheme(
+                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Search and select customer',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                     ),
-                  ],
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 ),
-                dropdownColor: Theme.of(context).primaryColor,
-                icon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Theme.of(context).colorScheme.primary,
+                menuStyle: MenuStyle(
+                  backgroundColor: WidgetStatePropertyAll(Theme.of(context).primaryColor),
+                  elevation: const WidgetStatePropertyAll(8.0),
                 ),
-                items: _customers.map((c) {
-                  return DropdownMenuItem<Map<String, dynamic>>(
+                enableFilter: true,
+                enableSearch: true,
+                trailingIcon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary),
+                leadingIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.outline, size: 20),
+                onSelected: (Map<String, dynamic>? selected) {
+                  setState(() => _selectedCustomer = selected);
+                  // To clear focus and keyboard after selection
+                  FocusScope.of(context).unfocus();
+                },
+                dropdownMenuEntries: _customers.map((c) {
+                  final String name = c['name'] ?? '';
+                  final String phone = c['mobileNumber'] ?? '';
+                  final String label = phone.isNotEmpty ? '$name ($phone)' : name;
+                  return DropdownMenuEntry<Map<String, dynamic>>(
                     value: c,
-                    child: Text(
-                      c['name'],
-                      style: const TextStyle(color: Colors.white),
+                    label: label,
+                    style: MenuItemButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
                     ),
                   );
                 }).toList(),
-                onChanged: (val) {
-                  setState(() => _selectedCustomer = val);
-                },
-              ),
-            ),
+              );
+            },
           ),
       ],
     );
@@ -517,7 +530,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         Text(
           'Sale Items',
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -536,18 +549,18 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.greenAccent.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add, color: Colors.greenAccent, size: 20),
+                Icon(Icons.add, color: Theme.of(context).colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Add Product',
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: Theme.of(context).colorScheme.primary,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -565,7 +578,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
@@ -588,10 +601,10 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       item['imageUrl'],
                       fit: BoxFit.cover,
                       errorBuilder: (c, e, s) =>
-                          Icon(Icons.image, color: Colors.white24),
+                          Icon(Icons.image, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
                     ),
                   )
-                : Icon(Icons.image, color: Colors.white24),
+                : Icon(Icons.image, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -604,8 +617,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     Expanded(
                       child: Text(
                         item['productName'],
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -637,7 +650,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                 Text(
                   'Available: ${item['availableStock']} bags',
                   style: TextStyle(
-                    color: Colors.greenAccent.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                     fontSize: 12,
                   ),
                 ),
@@ -678,13 +691,13 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                                       });
                                     }
                                   },
-                                  child: const Padding(
+                                  child: Padding(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 8,
                                     ),
                                     child: Icon(
                                       Icons.remove,
-                                      color: Colors.greenAccent,
+                                      color: Theme.of(context).colorScheme.primary,
                                       size: 16,
                                     ),
                                   ),
@@ -693,8 +706,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                                   child: Text(
                                     '${item['quantity']} bags',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -707,13 +720,13 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                                           item['quantity'] * item['rate'];
                                     });
                                   },
-                                  child: const Padding(
+                                  child: Padding(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 8,
                                     ),
                                     child: Icon(
                                       Icons.add,
-                                      color: Colors.greenAccent,
+                                      color: Theme.of(context).colorScheme.primary,
                                       size: 16,
                                     ),
                                   ),
@@ -752,14 +765,14 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                             child: TextFormField(
                               initialValue: item['rate'].toString(),
                               keyboardType: TextInputType.number,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 13,
                               ),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 prefixText: '₹',
                                 prefixStyle: TextStyle(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 13,
                                 ),
                                 isDense: true,
@@ -797,7 +810,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Colors.greenAccent.withValues(
+                                color: Theme.of(context).colorScheme.primary.withValues(
                                   alpha: 0.5,
                                 ),
                               ),
@@ -805,9 +818,9 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              '₹${numFormat.format(item['amount'])}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              '₹${numFormat.format(item['amount'] ?? 0)}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 13,
                               ),
                             ),
@@ -834,96 +847,146 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.5,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Select Product',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: _products.length,
-                    itemBuilder: (context, index) {
-                      final product = _products[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.white12,
-                          backgroundImage:
-                              product['imageUrl'] != null &&
-                                  product['imageUrl'].toString().isNotEmpty
-                              ? NetworkImage(product['imageUrl'])
-                              : null,
-                          child:
-                              product['imageUrl'] == null ||
-                                  product['imageUrl'].toString().isEmpty
-                              ? Icon(Icons.inventory, color: Colors.white54)
-                              : null,
-                        ),
-                        title: Text(
-                          product['productName'],
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          '${product['brandName']} • ₹${product['sellingPrice']} (Stock: ${product['currentStock']})',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.outline,
+        String searchQuery = '';
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredProducts = _products.where((p) {
+              final name = (p['name']?.toString() ?? '').toLowerCase();
+              final brand = (p['brand']?.toString() ?? '').toLowerCase();
+              final query = searchQuery.toLowerCase();
+              return name.contains(query) || brand.contains(query);
+            }).toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Select Product',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          IconButton(
+                            icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: TextField(
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        decoration: InputDecoration(
+                          hintText: 'Search product...',
+                          hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline),
+                          prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.outline),
+                          filled: true,
+                          fillColor: Colors.black12,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
-                        onTap: () {
-                          setState(() {
-                            // Check if already added
-                            final existingIndex = _saleItems.indexWhere(
-                              (i) => i['productId'] == product['id'],
-                            );
-                            if (existingIndex >= 0) {
-                              _saleItems[existingIndex]['quantity']++;
-                              _saleItems[existingIndex]['amount'] =
-                                  _saleItems[existingIndex]['quantity'] *
-                                  _saleItems[existingIndex]['rate'];
-                            } else {
-                              _saleItems.add({
-                                'productId': product['id'],
-                                'productName': product['productName'],
-                                'brandName': product['brandName'],
-                                'bagSize': product['bagSize'],
-                                'imageUrl': product['imageUrl'],
-                                'availableStock': product['currentStock'],
-                                'quantity': 1,
-                                'rate': product['sellingPrice'],
-                                'amount': product['sellingPrice'],
-                              });
-                            }
+                        onChanged: (val) {
+                          setModalState(() {
+                            searchQuery = val;
                           });
-                          Navigator.pop(context);
                         },
-                      );
-                    },
-                  ),
-                ),
-              ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+                              backgroundImage:
+                                  product['image'] != null &&
+                                      product['image'].toString().isNotEmpty
+                                  ? NetworkImage(product['image'])
+                                  : null,
+                              child:
+                                  product['image'] == null ||
+                                      product['image'].toString().isEmpty
+                                  ? Icon(Icons.inventory, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))
+                                  : null,
+                            ),
+                            title: Text(
+                              product['name']?.toString() ?? 'Unknown Product',
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            ),
+                            subtitle: Text(
+                              '${product['brand'] ?? ''} • ₹${product['sellingPrice'] ?? 0} (Stock: ${product['currentStock'] ?? 0})',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            onTap: () {
+                              setState(() {
+                                // Check if already added
+                                final existingIndex = _saleItems.indexWhere(
+                                  (i) => i['productId'] == product['id'],
+                                );
+                                if (existingIndex >= 0) {
+                                  _saleItems[existingIndex]['quantity']++;
+                                  _saleItems[existingIndex]['amount'] =
+                                      _saleItems[existingIndex]['quantity'] *
+                                      _saleItems[existingIndex]['rate'];
+                                } else {
+                                  _saleItems.add({
+                                    'productId': product['id'],
+                                    'productName': product['name'] ?? 'Unknown Product',
+                                    'brandName': product['brand'] ?? '',
+                                    'bagSize': product['bagSize'],
+                                    'imageUrl': product['image'],
+                                    'availableStock': product['currentStock'] ?? 0,
+                                    'quantity': 1,
+                                    'rate': product['sellingPrice'] ?? 0,
+                                    'amount': product['sellingPrice'] ?? 0,
+                                  });
+                                }
+                              });
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         );
@@ -940,7 +1003,9 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         : 0.0;
     double currentBalance = _selectedCustomer?['currentBalance'] != null
         ? (_selectedCustomer!['currentBalance'] as num).toDouble()
-        : 0.0;
+        : _selectedCustomer?['outstandingBalance'] != null
+            ? (_selectedCustomer!['outstandingBalance'] as num).toDouble()
+            : 0.0;
 
     double balanceAmount = _totalAmount - _paidAmount;
     double newCustomerBalance = _isEditMode
@@ -959,8 +1024,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       children: [
         Text(
           _isEditMode ? 'Payment Correction' : 'Payment Summary',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -986,7 +1051,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       child: _buildAmountColumn(
                         'Original Total',
                         originalTotal,
-                        Colors.white,
+                        Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     _buildVerticalDivider(),
@@ -1002,7 +1067,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       child: _buildAmountColumn(
                         'Original Paid',
                         originalPaid,
-                        Colors.white,
+                        Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -1025,8 +1090,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                           const SizedBox(height: 4),
                           Text(
                             '$_totalBags',
-                            style: const TextStyle(
-                              color: Colors.greenAccent,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 20,
                             ),
                           ),
@@ -1048,8 +1113,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                           const SizedBox(height: 4),
                           Text(
                             '₹${numFormat.format(_totalAmount)}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 20,
                             ),
                           ),
@@ -1060,7 +1125,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-              Divider(color: Colors.white.withValues(alpha: 0.1)),
+              Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -1095,7 +1160,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                       ),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1103,11 +1168,11 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     child: TextFormField(
                       controller: _paidAmountController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
+                      decoration: InputDecoration(
                         prefixText: '₹',
                         prefixStyle: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                         ),
                         isDense: true,
@@ -1121,7 +1186,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              Divider(color: Colors.white.withValues(alpha: 0.1)),
+              Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
               const SizedBox(height: 16),
               if (!_isEditMode) ...[
                 Row(
@@ -1158,8 +1223,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                   ),
                   Text(
                     '₹${numFormat.format(newCustomerBalance)}',
-                    style: const TextStyle(
-                      color: Colors.greenAccent,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1197,7 +1262,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
     return Container(
       height: 40,
       width: 1,
-      color: Colors.white.withValues(alpha: 0.1),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
       margin: const EdgeInsets.symmetric(horizontal: 16),
     );
   }
@@ -1215,7 +1280,9 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
 
     double currentBalance = _selectedCustomer?['currentBalance'] != null
         ? (_selectedCustomer!['currentBalance'] as num).toDouble()
-        : 0.0;
+        : _selectedCustomer?['outstandingBalance'] != null
+            ? (_selectedCustomer!['outstandingBalance'] as num).toDouble()
+            : 0.0;
     double newCustomerBalance = currentBalance + balanceAdjustment;
 
     // Calculate Stock adjustment
@@ -1229,7 +1296,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         Text(
           'Impact Preview',
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -1252,24 +1319,24 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                   Icons.arrow_upward,
                   bagAdjustment > 0 ? 'Return to Stock' : 'Deduct from Stock',
                   '${bagAdjustment > 0 ? '+' : ''}$bagAdjustment Bag${bagAdjustment.abs() > 1 ? 's' : ''}',
-                  bagAdjustment > 0 ? Colors.greenAccent : Colors.redAccent,
+                  bagAdjustment > 0 ? Theme.of(context).colorScheme.primary : Colors.redAccent,
                 ),
-                Divider(color: Colors.white.withValues(alpha: 0.1)),
+                Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
               ],
               _buildImpactRow(
                 Icons.person_outline,
                 'Customer Balance Adjustment',
                 '${balanceAdjustment > 0 ? '+' : ''} ₹${numFormat.format(balanceAdjustment)}',
-                balanceAdjustment < 0 ? Colors.redAccent : Colors.greenAccent,
+                balanceAdjustment < 0 ? Colors.redAccent : Theme.of(context).colorScheme.primary,
               ),
-              Divider(color: Colors.white.withValues(alpha: 0.1)),
+              Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
               _buildImpactRow(
                 Icons.account_balance_wallet_outlined,
                 'Updated Customer Balance',
                 '₹${numFormat.format(newCustomerBalance)}',
-                Colors.greenAccent,
+                Theme.of(context).colorScheme.primary,
               ),
-              Divider(color: Colors.white.withValues(alpha: 0.1)),
+              Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
               _buildImpactRow(
                 Icons.menu_book,
                 'Ledger Entry',
@@ -1409,14 +1476,13 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.check_circle_outline,
-                    color: Colors.black,
+                    Icons.check_circle_outline, color: Theme.of(context).colorScheme.onPrimary,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     _isEditMode ? 'Update Sale' : 'Complete Sale',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -1459,7 +1525,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       final saleData = {
         'customerId': _selectedCustomer!['id'],
         'paidAmount': _paidAmount,
-        'paymentMode': _paidAmount > 0 ? 'Cash' : null,
+        'paymentMode': _paidAmount > 0 ? 'Cash' : '',
         'saleItems': _saleItems
             .map(
               (item) => {
@@ -1476,6 +1542,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       } else {
         await SaleService.createSale(saleData);
       }
+      
+      AppEvents.triggerRefresh(); // Trigger global data refresh
 
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success
@@ -1489,3 +1557,4 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
     }
   }
 }
+

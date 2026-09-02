@@ -23,19 +23,30 @@ class Customer {
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-      id: json['id'],
-      name: json['name'],
-      mobileNumber: json['mobileNumber'],
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      mobileNumber: json['mobileNumber'] ?? json['phone'],
       address: json['address'],
       openingBalance: (json['openingBalance'] ?? 0).toDouble(),
-      currentBalance: (json['currentBalance'] ?? 0).toDouble(),
+      currentBalance: (json['currentBalance'] ?? json['outstandingBalance'] ?? 0).toDouble(),
       isActive: json['isActive'] ?? true,
-      createdDate: DateTime.parse(json['createdDate']),
+      createdDate: json['createdDate'] != null 
+          ? DateTime.tryParse(json['createdDate'].toString()) ?? DateTime.now() 
+          : DateTime.now(),
       updatedDate: json['updatedDate'] != null
-          ? DateTime.parse(json['updatedDate'])
+          ? DateTime.tryParse(json['updatedDate'].toString())
           : null,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Customer && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 
   Map<String, dynamic> toJson() {
     return {

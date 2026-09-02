@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../services/product_service.dart';
 import '../../services/stock_service.dart';
+import '../../utils/app_events.dart';
 
 class StockFormScreen extends StatefulWidget {
   final Map<String, dynamic>?
@@ -110,6 +111,8 @@ class _StockFormScreenState extends State<StockFormScreen> {
         await StockService.createStockTransaction(payload);
       }
 
+      AppEvents.triggerRefresh();
+
       if (mounted) {
         Navigator.pop(context, true);
       }
@@ -135,7 +138,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
               primary: Theme.of(context).colorScheme.primary,
               onPrimary: Colors.black,
               surface: Theme.of(context).primaryColor,
-              onSurface: Colors.white,
+              onSurface: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           child: child!,
@@ -185,8 +188,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor
-                          .withValues(alpha: 0.5),
+                      color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: Theme.of(context).colorScheme.primary
@@ -198,8 +200,8 @@ class _StockFormScreenState extends State<StockFormScreen> {
                       children: [
                         Text(
                           'Stock IN #ST-${widget.transaction!['id'].toString().padLeft(4, '0')}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -219,8 +221,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: Theme.of(context).colorScheme.primary
@@ -230,10 +231,10 @@ class _StockFormScreenState extends State<StockFormScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Stock Information',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -256,7 +257,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                             Text(
                               'Product${isEditMode ? '' : ' *'}',
                               style: TextStyle(
-                                color: Colors.greenAccent.withValues(
+                                color: Theme.of(context).colorScheme.primary.withValues(
                                   alpha: 0.8,
                                 ),
                                 fontSize: 13,
@@ -292,7 +293,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                                       Text(
                                         'Quantity *',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 13,
@@ -316,7 +317,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                                       Text(
                                         'Date *',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 13,
@@ -349,8 +350,8 @@ class _StockFormScreenState extends State<StockFormScreen> {
                                               Text(
                                                 DateFormat('dd MMM yyyy')
                                                     .format(_selectedDate),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
+                                                style: TextStyle(
+                                                  color: Theme.of(context).colorScheme.onSurface,
                                                   fontSize: 16,
                                                 ),
                                               ),
@@ -375,7 +376,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                             Text(
                               'Remarks',
                               style: TextStyle(
-                                color: Colors.greenAccent.withValues(
+                                color: Theme.of(context).colorScheme.primary.withValues(
                                   alpha: 0.8,
                                 ),
                                 fontSize: 13,
@@ -465,14 +466,13 @@ class _StockFormScreenState extends State<StockFormScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      Icons.check_circle_outline,
-                                      color: Colors.black,
+                                      Icons.check_circle_outline, color: Theme.of(context).colorScheme.onPrimary,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       isEditMode ? 'Update Entry' : 'Add Stock',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Colors.black,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -517,8 +517,8 @@ class _StockFormScreenState extends State<StockFormScreen> {
               children: [
                 Text(
                   isEditMode ? 'Edit Stock Entry' : 'Stock Inward',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
@@ -528,7 +528,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                       ? 'Correct inward transaction'
                       : 'Add new stock to inventory',
                   style: TextStyle(
-                    color: Colors.greenAccent.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                     fontSize: 13,
                   ),
                 ),
@@ -540,13 +540,13 @@ class _StockFormScreenState extends State<StockFormScreen> {
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.greenAccent.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                 ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.arrow_downward,
-                color: Colors.greenAccent,
+                color: Theme.of(context).colorScheme.primary,
                 size: 20,
               ),
             ),
@@ -560,18 +560,18 @@ class _StockFormScreenState extends State<StockFormScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.5)),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.arrow_downward, color: Colors.greenAccent, size: 16),
+        children: [
+          Icon(Icons.arrow_downward, color: Theme.of(context).colorScheme.primary, size: 16),
           SizedBox(width: 6),
           Text(
             'IN',
             style: TextStyle(
-              color: Colors.greenAccent,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -608,7 +608,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
               value: product,
               child: Text(
                 '${product['name']} - ${product['brand']}',
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               ),
             );
           }).toList(),
@@ -627,14 +627,14 @@ class _StockFormScreenState extends State<StockFormScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.greenAccent.withValues(alpha: 0.3),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
           style: BorderStyle.none,
         ),
         borderRadius: BorderRadius.circular(8),
       ),
       child: CustomPaint(
         painter: DashedRectPainter(
-          color: Colors.greenAccent.withValues(alpha: 0.3),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
         ),
         child: Container(
           width: double.infinity,
@@ -673,9 +673,9 @@ class _StockFormScreenState extends State<StockFormScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -696,8 +696,8 @@ class _StockFormScreenState extends State<StockFormScreen> {
               children: [
                 Text(
                   _selectedProduct!['name'],
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -706,7 +706,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 Text(
                   '${_selectedProduct!['brand']} • ${_selectedProduct!['weight']}',
                   style: TextStyle(
-                    color: Colors.greenAccent.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                     fontSize: 13,
                   ),
                 ),
@@ -751,7 +751,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
       ),
       child: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
         keyboardType: keyboardType,
         maxLines: maxLines,
         decoration: InputDecoration(
@@ -792,7 +792,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
@@ -804,10 +804,10 @@ class _StockFormScreenState extends State<StockFormScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Stock Preview',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -822,7 +822,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'Current Stock',
                   numFormat.format(current),
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
                 Text(
                   '+',
@@ -834,7 +834,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'Adding',
                   '+${numFormat.format(qty)}',
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
                 Text(
                   '=',
@@ -846,7 +846,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'New Stock',
                   numFormat.format(current + qty),
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -872,7 +872,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
@@ -881,10 +881,10 @@ class _StockFormScreenState extends State<StockFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Correction Impact',
               style: TextStyle(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -896,7 +896,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'Original Quantity',
                   numFormat.format(originalQty),
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
                 Icon(
                   Icons.arrow_forward,
@@ -906,7 +906,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'Revised Quantity',
                   numFormat.format(qty),
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
                 Text(
                   '=',
@@ -929,7 +929,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'Current Stock',
                   numFormat.format(current),
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
                 Icon(
                   Icons.arrow_forward,
@@ -939,7 +939,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
                 _buildImpactStat(
                   'Updated Stock',
                   numFormat.format(updated),
-                  Colors.greenAccent,
+                  Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -987,7 +987,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.greenAccent.withValues(alpha: 0.8),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
             fontSize: 12,
           ),
         ),

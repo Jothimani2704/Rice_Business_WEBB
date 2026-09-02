@@ -73,7 +73,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     final minStock = (widget.product['minimumStockLevel'] as num).toDouble();
     final isHealthy = currentStock > minStock;
     final progressColor = isHealthy
-        ? Colors.greenAccent
+        ? Theme.of(context).colorScheme.primary
         : (currentStock > 0
               ? Theme.of(context).colorScheme.primary
               : Colors.redAccent);
@@ -95,7 +95,11 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -104,8 +108,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,11 +133,11 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Stock Details',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -169,8 +174,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: Theme.of(context).colorScheme.primary
@@ -197,8 +201,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                     widget.product['productName'] ??
                                         widget.product['name'] ??
                                         '',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -207,7 +211,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                   Text(
                                     '${widget.product['brandName'] ?? widget.product['brand'] ?? ''} • ${widget.product['bagSize'] ?? widget.product['weight'] ?? ''}${widget.product['bagSize'] != null ? ' kg' : ''}',
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 14,
@@ -221,7 +225,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: Colors.greenAccent.withValues(
+                                        color: Theme.of(context).colorScheme.primary.withValues(
                                           alpha: 0.5,
                                         ),
                                       ),
@@ -233,8 +237,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                         Container(
                                           width: 8,
                                           height: 8,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.greenAccent,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -243,8 +247,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                           (widget.product['isActive'] ?? true)
                                               ? 'Active'
                                               : 'Inactive',
-                                          style: const TextStyle(
-                                            color: Colors.greenAccent,
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.primary,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -263,11 +267,10 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -282,7 +285,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                       Text(
                                         'Current Stock',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 12,
@@ -297,7 +300,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                           Text(
                                             numFormat.format(currentStock),
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 28,
                                               fontWeight: FontWeight.bold,
@@ -307,7 +310,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                           Text(
                                             'Bags',
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 12,
                                             ),
@@ -320,7 +323,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 Container(
                                   width: 1,
                                   height: 40,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -346,7 +349,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                           Text(
                                             numFormat.format(minStock),
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -356,7 +359,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                           Text(
                                             'Bags',
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 12,
                                             ),
@@ -369,7 +372,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 Container(
                                   width: 1,
                                   height: 40,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -418,7 +421,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                             const SizedBox(height: 16),
                             LinearProgressIndicator(
                               value: progressValue,
-                              backgroundColor: Colors.white.withValues(
+                              backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(
                                 alpha: 0.1,
                               ),
                               color: progressColor,
@@ -452,8 +455,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 horizontal: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor
-                                    .withValues(alpha: 0.5),
+                                color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Theme.of(context).colorScheme.primary
@@ -481,7 +483,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                       Text(
                                         numFormat.format(totalInward),
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 22,
@@ -492,7 +494,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                       Text(
                                         'Bags',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 11,
@@ -512,8 +514,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 horizontal: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor
-                                    .withValues(alpha: 0.5),
+                                color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Theme.of(context).colorScheme.primary
@@ -541,7 +542,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                       Text(
                                         numFormat.format(totalOutward),
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 22,
@@ -552,7 +553,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                       Text(
                                         'Bags',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 11,
@@ -572,8 +573,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 horizontal: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor
-                                    .withValues(alpha: 0.5),
+                                color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Theme.of(context).colorScheme.primary
@@ -594,8 +594,8 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     '₹${numFormat.format(stockValue)}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -642,10 +642,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
+                                  children: [
                                     Icon(
-                                      Icons.add,
-                                      color: Colors.black,
+                                      Icons.add, color: Theme.of(context).colorScheme.onPrimary,
                                       size: 20,
                                     ),
                                     SizedBox(width: 8),
@@ -717,10 +716,10 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      const Text(
+                      Text(
                         'Stock Movement History',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -735,7 +734,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                           _buildFilterChip(
                             'IN',
                             'IN',
-                            activeColor: Colors.greenAccent,
+                            activeColor: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(width: 12),
                           _buildFilterChip(
@@ -798,7 +797,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
           border: Border.all(
             color: isSelected
                 ? colorToUse
-                : Colors.white.withValues(alpha: 0.3),
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
         ),
         child: Text(
@@ -822,7 +821,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     // The C# enum: In = 1, Out = 2, Adjustment = 3
     final isOut = history['transactionType'] == 2;
 
-    final iconColor = isOut ? Colors.redAccent : Colors.greenAccent;
+    final iconColor = isOut ? Colors.redAccent : Theme.of(context).colorScheme.primary;
     final icon = isOut ? Icons.arrow_upward : Icons.arrow_downward;
     final typeText = isOut ? 'OUT' : 'IN';
     final sign = isOut ? '-' : '+';
@@ -843,9 +842,9 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -888,7 +887,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
           Container(
             width: 1,
             height: 30,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -898,7 +897,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
               children: [
                 Text(
                   '$dateStr • $timeStr',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -916,7 +915,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
           Container(
             width: 1,
             height: 30,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -940,7 +939,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                     Text(
                       numFormat.format(balance),
                       style: TextStyle(
-                        color: Colors.greenAccent.withValues(alpha: 0.8),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -949,7 +948,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                     Text(
                       'Bags',
                       style: TextStyle(
-                        color: Colors.greenAccent.withValues(alpha: 0.8),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                         fontSize: 10,
                       ),
                     ),

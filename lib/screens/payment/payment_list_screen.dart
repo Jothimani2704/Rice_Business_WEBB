@@ -5,6 +5,7 @@ import '../../services/payment_service.dart';
 import '../../models/payment.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'payment_form_screen.dart';
+import '../../utils/app_events.dart';
 
 class PaymentListScreen extends StatefulWidget {
   const PaymentListScreen({super.key});
@@ -24,6 +25,13 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   void initState() {
     super.initState();
     _fetchPayments();
+    AppEvents.refreshData.addListener(_fetchPayments);
+  }
+
+  @override
+  void dispose() {
+    AppEvents.refreshData.removeListener(_fetchPayments);
+    super.dispose();
   }
 
   Future<void> _fetchPayments() async {
@@ -31,8 +39,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     try {
       final payments = await PaymentService.getPayments();
       setState(() {
-        // Reverse so the newest payments are at the top (if backend doesn't sort)
-        _payments = payments.reversed.toList();
+        // Sort by date descending so the newest payments are at the top
+        payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+        _payments = payments;
         _isLoading = false;
       });
     } catch (e) {
@@ -59,20 +68,39 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
       return const ListSkeleton(title: 'Payments');
     }
 
+    final filteredPayments = _payments.where((payment) {
+      if (_selectedFilter == 'All') return true;
+      if (_selectedFilter == 'Today') {
+        final now = DateTime.now();
+        return payment.paymentDate.year == now.year &&
+            payment.paymentDate.month == now.month &&
+            payment.paymentDate.day == now.day;
+      }
+      if (_selectedFilter == 'Bank') {
+        return payment.paymentMode.toLowerCase().contains('bank');
+      }
+      return payment.paymentMode.toLowerCase() == _selectedFilter.toLowerCase();
+    }).toList();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.6),
-            radius: 1.2,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).primaryColor,
-              Colors.black,
-            ],
-            stops: const [0.0, 0.6, 1.0],
-          ),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? null
+              : Theme.of(context).scaffoldBackgroundColor,
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? RadialGradient(
+                  center: const Alignment(0, -0.6),
+                  radius: 1.2,
+                  colors: [
+                    Theme.of(context).colorScheme.surface,
+                    Theme.of(context).primaryColor,
+                    Colors.black,
+                  ],
+                  stops: const [0.0, 0.6, 1.0],
+                )
+              : null,
         ),
         child: SafeArea(
           child: Column(
@@ -87,12 +115,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               const SizedBox(height: 24),
               _buildFilterChips(),
               const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   'Recent Payments',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.primary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -100,7 +128,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: _payments.isEmpty
+                child: filteredPayments.isEmpty
                     ? Center(
                         child: Text(
                           'No payments found',
@@ -111,9 +139,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _payments.length,
+                        itemCount: filteredPayments.length,
                         itemBuilder: (context, index) {
-                          return _buildPaymentCard(_payments[index]);
+                          return _buildPaymentCard(filteredPayments[index]);
                         },
                       ),
               ),
@@ -154,10 +182,10 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Payments',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.primary,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -210,12 +238,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
               ),
               child: TextField(
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: InputDecoration(
                   hintText: 'Search payment or customer',
                   hintStyle: TextStyle(
@@ -238,23 +266,23 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.greenAccent.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.filter_alt_outlined,
-                  color: Colors.greenAccent,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Filter',
-                  style: TextStyle(color: Colors.greenAccent, fontSize: 14),
+                  style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 14),
                 ),
               ],
             ),
@@ -275,7 +303,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               title: 'Today\'s Collection',
               value: '₹${numFormat.format(_todaysCollection)}',
               icon: Icons.savings_outlined,
-              color: Colors.greenAccent,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(width: 8),
@@ -285,7 +313,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               title: 'Payments',
               value: '$_paymentsCount',
               icon: Icons.credit_card_outlined,
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(width: 8),
@@ -295,7 +323,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               title: 'Total Outstanding',
               value: '₹${numFormat.format(_totalOutstanding)}',
               icon: Icons.person_outline,
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -312,9 +340,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -322,7 +350,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: color.withValues(alpha: 0.5)),
+              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
@@ -370,24 +398,18 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
-                    ],
-                  ),
-
+                  color: Theme.of(context).colorScheme.secondary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add, color: Colors.black, size: 20),
+                    Icon(Icons.add, color: Theme.of(context).primaryColor, size: 20),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Receive Payment',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: Theme.of(context).primaryColor,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -411,7 +433,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
                 child: Row(
@@ -461,23 +483,20 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                            .withValues(alpha: 0.1)
-                      : Colors.transparent,
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primary
+                        ? Theme.of(context).colorScheme.secondary
                         : Theme.of(context).colorScheme.outline
-                              .withValues(alpha: 0.5),
+                              .withValues(alpha: 0.3),
                   ),
                 ),
                 child: Text(
                   filter,
                   style: TextStyle(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primary
+                        ? Theme.of(context).colorScheme.secondary
                         : Theme.of(context).colorScheme.outline,
                     fontSize: 14,
                     fontWeight: isSelected
@@ -501,9 +520,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,12 +532,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.greenAccent.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
               ),
             ),
             child: Icon(
               Icons.credit_score,
-              color: Colors.greenAccent,
+              color: Theme.of(context).colorScheme.primary,
               size: 24,
             ),
           ),
@@ -534,24 +553,24 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                     children: [
                       Text(
                         'Payment #${payment.id}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 13,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         dateStr,
-                        style: const TextStyle(
-                          color: Colors.greenAccent,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 11,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         payment.customerName,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -570,7 +589,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
                             color: Colors.blueAccent.withValues(alpha: 0.5),
@@ -578,7 +597,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                         ),
                         child: Text(
                           payment.paymentMode,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.blueAccent,
                             fontSize: 11,
                           ),
@@ -608,8 +627,8 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                         children: [
                           Text(
                             '₹${numFormat.format(payment.amount)}',
-                            style: const TextStyle(
-                              color: Colors.greenAccent,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -621,8 +640,8 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                       const SizedBox(height: 4),
                       Text(
                         'Previous ₹${numFormat.format(payment.previousBalance)}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 11,
                         ),
                       ),
@@ -632,8 +651,8 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                         children: [
                           Text(
                             'Balance ₹${numFormat.format(payment.newBalance)}',
-                            style: const TextStyle(
-                              color: Colors.greenAccent,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 11,
                             ),
                           ),

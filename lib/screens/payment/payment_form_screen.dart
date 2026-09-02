@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/payment_service.dart';
 import '../../services/customer_service.dart';
 import '../../models/customer.dart';
+import '../../utils/app_events.dart';
 
 class PaymentFormScreen extends StatefulWidget {
   final Customer? preSelectedCustomer;
@@ -112,6 +113,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
       };
 
       await PaymentService.createPayment(data);
+      AppEvents.triggerRefresh(); // Trigger global data refresh
 
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success
@@ -136,7 +138,11 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           // Background Gradient
           Container(
             decoration: BoxDecoration(
-              gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
                 center: const Alignment(0, -0.6),
                 radius: 1.2,
                 colors: [
@@ -145,8 +151,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                   Colors.black,
                 ],
                 stops: const [0.0, 0.6, 1.0],
-              ),
-            ),
+              )
+      : null,
+),
           ),
 
           SafeArea(
@@ -215,10 +222,10 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Receive Payment',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -239,66 +246,77 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
     );
   }
 
+  // Customer search removed in favor of DropdownMenu
+
   // To be implemented:
   Widget _buildCustomerSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Field', style: TextStyle(color: Colors.white)),
+        Text('Customer', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.primary
-                  .withValues(alpha: 0.5),
-            ),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<Customer>(
-              isExpanded: true,
-              dropdownColor: Theme.of(context).primaryColor,
-              icon: Icon(
-                Icons.keyboard_arrow_down,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              hint: Row(
-                children: [
-                  Icon(
-                    Icons.search,
-                    color: Theme.of(context).colorScheme.outline,
-                    size: 20,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return DropdownMenu<Customer>(
+              width: constraints.maxWidth,
+              hintText: 'Search and select customer',
+              textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              inputDecorationTheme: InputDecorationTheme(
+                hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                   ),
-                  const SizedBox(width: 8),
-                  const Text('Field', style: TextStyle(color: Colors.white)),
-                ],
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
-              value: _selectedCustomer,
-              items: _customers.map((c) {
-                return DropdownMenuItem<Customer>(
+              menuStyle: MenuStyle(
+                backgroundColor: WidgetStatePropertyAll(Theme.of(context).primaryColor),
+                elevation: const WidgetStatePropertyAll(8.0),
+              ),
+              enableFilter: true,
+              enableSearch: true,
+              trailingIcon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary),
+              leadingIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.outline, size: 20),
+              initialSelection: _selectedCustomer,
+              onSelected: (Customer? selected) {
+                setState(() => _selectedCustomer = selected);
+                FocusScope.of(context).unfocus();
+              },
+              dropdownMenuEntries: _customers.map((c) {
+                final String name = c.name;
+                final String phone = c.mobileNumber ?? '';
+                final String label = phone.isNotEmpty ? '$name ($phone)' : name;
+                return DropdownMenuEntry<Customer>(
                   value: c,
-                  child: Text(
-                    c.name,
-                    style: const TextStyle(color: Colors.white),
+                  label: label,
+                  style: MenuItemButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
                   ),
                 );
               }).toList(),
-              onChanged: (c) {
-                setState(() {
-                  _selectedCustomer = c;
-                });
-              },
-            ),
-          ),
+            );
+          },
         ),
         if (_selectedCustomer != null) ...[
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+              color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: Theme.of(context).colorScheme.primary
@@ -333,8 +351,8 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                     children: [
                       Text(
                         _selectedCustomer!.name,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -363,9 +381,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.circle, color: Colors.green, size: 8),
+                            Icon(Icons.circle, color: Colors.green, size: 8),
                             const SizedBox(width: 4),
-                            const Text(
+                            Text(
                               'Active',
                               style: TextStyle(
                                 color: Colors.green,
@@ -381,7 +399,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text('Field', style: TextStyle(color: Colors.white)),
+                    Text('Outstanding Balance', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(height: 4),
                     Text(
                       '₹${numFormat.format(_selectedCustomer!.currentBalance)}',
@@ -405,7 +423,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
@@ -414,10 +432,10 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Payment Information',
             style: TextStyle(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -425,7 +443,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           const SizedBox(height: 24),
 
           // Amount
-          const Text('Field', style: TextStyle(color: Colors.white)),
+          Text('Amount Received', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -445,7 +463,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
-              decoration: const InputDecoration(border: InputBorder.none),
+              decoration: InputDecoration(border: InputBorder.none),
             ),
           ),
           if (_selectedCustomer != null) ...[
@@ -462,7 +480,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           const SizedBox(height: 20),
 
           // Payment Mode
-          const Text('Field', style: TextStyle(color: Colors.white)),
+          Text('Payment Mode', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -484,7 +502,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           const SizedBox(height: 20),
 
           // Payment Date
-          const Text('Field', style: TextStyle(color: Colors.white)),
+          Text('Payment Date', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () async {
@@ -498,9 +516,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                     data: ThemeData.dark().copyWith(
                       colorScheme: ColorScheme.light(
                         primary: Theme.of(context).colorScheme.primary,
-                        onPrimary: Colors.white,
+                        onPrimary: Theme.of(context).colorScheme.onSurface,
                         surface: Theme.of(context).primaryColor,
-                        onSurface: Colors.white,
+                        onSurface: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     child: child!,
@@ -531,7 +549,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                   const SizedBox(width: 8),
                   Text(
                     DateFormat('dd MMM yyyy').format(_paymentDate),
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                   ),
                   const Spacer(),
                   Icon(
@@ -546,14 +564,14 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           const SizedBox(height: 20),
 
           // Reference Number
-          Text('Field', style: TextStyle(color: Colors.white)),
+          Text('Reference Number (Optional)', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: 8),
           _buildTextField(_referenceController, 'UPI829104'),
 
           const SizedBox(height: 20),
 
           // Notes
-          Text('Field', style: TextStyle(color: Colors.white)),
+          Text('Additional Notes', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           const SizedBox(height: 8),
           _buildTextField(
             _notesController,
@@ -595,7 +613,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             Text(
               mode,
               style: TextStyle(
-                color: isSelected ? Colors.blue : Colors.white,
+                color: isSelected ? Colors.blue : Theme.of(context).colorScheme.onSurface,
                 fontSize: 12,
               ),
             ),
@@ -622,7 +640,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
       child: TextField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(color: Colors.white, fontSize: 15),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline),
@@ -642,7 +660,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
@@ -651,10 +669,10 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Balance Preview',
             style: TextStyle(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -667,7 +685,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('Field', style: TextStyle(color: Colors.white)),
+                  Text('Current', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
                   const SizedBox(height: 4),
                   Text(
                     '₹${numFormat.format(currentBal)}',
@@ -679,11 +697,11 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                   ),
                 ],
               ),
-              Text('Field', style: TextStyle(color: Colors.white)),
+              Text('-', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 24)),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('Field', style: TextStyle(color: Colors.white)),
+                  Text('Payment', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
                   const SizedBox(height: 4),
                   Text(
                     '— ₹${numFormat.format(payment)}',
@@ -695,16 +713,16 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                   ),
                 ],
               ),
-              Text('Field', style: TextStyle(color: Colors.white)),
+              Text('=', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 24)),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('Field', style: TextStyle(color: Colors.white)),
+                  Text('New Bal', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
                   const SizedBox(height: 4),
                   Text(
                     '₹${numFormat.format(newBal)}',
-                    style: const TextStyle(
-                      color: Colors.greenAccent,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -725,23 +743,23 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.greenAccent.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: Colors.greenAccent.withValues(alpha: 0.5),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'PAYMENT • CREDIT',
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: Theme.of(context).colorScheme.primary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              Text('Field', style: TextStyle(color: Colors.white)),
+              Expanded(child: Text('This payment will be credited to the customer account.', style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 12))),
             ],
           ),
         ],
@@ -765,7 +783,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 ),
               ),
               alignment: Alignment.center,
-              child: Text('Field', style: TextStyle(color: Colors.white)),
+              child: Text('Cancel', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
             ),
           ),
         ),
@@ -795,7 +813,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       'Save Payment',
                       style: TextStyle(
                         color: Colors.black,

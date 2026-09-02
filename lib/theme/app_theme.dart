@@ -69,7 +69,7 @@ class AppTheme {
       onPrimary: accentGold,
       onSecondary: Colors.white,
       onSurface: Colors.black87,
-      outline: Colors.black26,
+      outline: Colors.black54,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: darkPrimary,

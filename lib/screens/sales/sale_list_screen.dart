@@ -5,6 +5,7 @@ import '../../services/sale_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'sale_detail_screen.dart';
 import 'sale_form_screen.dart';
+import '../../utils/app_events.dart';
 
 class SaleListScreen extends StatefulWidget {
   const SaleListScreen({super.key});
@@ -24,6 +25,13 @@ class _SaleListScreenState extends State<SaleListScreen> {
   void initState() {
     super.initState();
     _fetchSales();
+    AppEvents.refreshData.addListener(_fetchSales);
+  }
+
+  @override
+  void dispose() {
+    AppEvents.refreshData.removeListener(_fetchSales);
+    super.dispose();
   }
 
   Future<void> _fetchSales() async {
@@ -107,16 +115,21 @@ class _SaleListScreenState extends State<SaleListScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.6),
-            radius: 1.2,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).primaryColor,
-              Colors.black,
-            ],
-            stops: const [0.0, 0.6, 1.0],
-          ),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? null
+              : Theme.of(context).scaffoldBackgroundColor,
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? RadialGradient(
+                  center: const Alignment(0, -0.6),
+                  radius: 1.2,
+                  colors: [
+                    Theme.of(context).colorScheme.surface,
+                    Theme.of(context).primaryColor,
+                    Colors.black,
+                  ],
+                  stops: const [0.0, 0.6, 1.0],
+                )
+              : null,
         ),
         child: SafeArea(
           child: Column(
@@ -141,10 +154,10 @@ class _SaleListScreenState extends State<SaleListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Sales',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
@@ -152,7 +165,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
                           Text(
                             'Manage customer bills',
                             style: TextStyle(
-                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                               fontSize: 13,
                             ),
                           ),
@@ -189,11 +202,11 @@ class _SaleListScreenState extends State<SaleListScreen> {
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                           ),
                         ),
                         child: TextField(
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             icon: Icon(
                               Icons.search,
@@ -215,7 +228,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.greenAccent.withValues(alpha: 0.5),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Icon(
@@ -238,8 +251,8 @@ class _SaleListScreenState extends State<SaleListScreen> {
                       icon: Icons.trending_up,
                       title: 'Today\'s Sales',
                       value: '₹${numFormat.format(_todaysSalesAmount)}',
-                      iconColor: Colors.greenAccent,
-                      iconBgColor: Colors.greenAccent.withValues(alpha: 0.1),
+                      iconColor: Theme.of(context).colorScheme.primary,
+                      iconBgColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     ),
                     const SizedBox(width: 12),
                     _buildMetricCard(
@@ -296,13 +309,13 @@ class _SaleListScreenState extends State<SaleListScreen> {
                           alignment: Alignment.center,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.add, color: Colors.black, size: 20),
-                              SizedBox(width: 8),
+                            children: [
+                              Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary, size: 20),
+                              const SizedBox(width: 8),
                               Text(
                                 'New Sale',
                                 style: TextStyle(
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -375,10 +388,10 @@ class _SaleListScreenState extends State<SaleListScreen> {
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: const Text(
+                child: Text(
                   'Recent Sales',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -427,9 +440,11 @@ class _SaleListScreenState extends State<SaleListScreen> {
       width: 140,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +464,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: titleColor ?? Colors.greenAccent,
+                    color: titleColor ?? Theme.of(context).colorScheme.primary,
                     fontSize: 12,
                   ),
                   maxLines: 1,
@@ -461,8 +476,8 @@ class _SaleListScreenState extends State<SaleListScreen> {
           const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -481,13 +496,13 @@ class _SaleListScreenState extends State<SaleListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.white.withValues(alpha: 0.1)
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
-                : Colors.white.withValues(alpha: 0.3),
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
         ),
         child: Text(
@@ -512,7 +527,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
     final total = (sale['totalAmount'] as num).toDouble();
 
     String badgeText = 'PAID';
-    Color badgeColor = Colors.greenAccent;
+    Color badgeColor = Theme.of(context).colorScheme.primary;
     if (balance > 0) {
       if (balance == total) {
         badgeText = 'UNPAID';
@@ -536,9 +551,11 @@ class _SaleListScreenState extends State<SaleListScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,8 +587,8 @@ class _SaleListScreenState extends State<SaleListScreen> {
                     children: [
                       Text(
                         'Sale #${sale['id'].toString().padLeft(4, '0')}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -580,7 +597,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
                       Text(
                         '$dateStr • $timeStr',
                         style: TextStyle(
-                          color: Colors.greenAccent.withValues(alpha: 0.8),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                           fontSize: 12,
                         ),
                       ),
@@ -622,14 +639,14 @@ class _SaleListScreenState extends State<SaleListScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.more_horiz, color: Colors.white, size: 24),
+                Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurface, size: 24),
               ],
             ),
             const SizedBox(height: 16),
             Text(
               sale['customerName'],
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),
@@ -640,14 +657,14 @@ class _SaleListScreenState extends State<SaleListScreen> {
                 Text(
                   '${sale['itemCount']} items • ${numFormat.format(sale['totalQuantity'])} bags',
                   style: TextStyle(
-                    color: Colors.greenAccent.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                     fontSize: 13,
                   ),
                 ),
                 const Spacer(),
-                _buildAmountColumn('Total', sale['totalAmount'], Colors.white),
+                _buildAmountColumn('Total', sale['totalAmount'], Theme.of(context).colorScheme.onSurface),
                 _buildVerticalDivider(),
-                _buildAmountColumn('Paid', sale['paidAmount'], Colors.white),
+                _buildAmountColumn('Paid', sale['paidAmount'], Theme.of(context).colorScheme.onSurface),
                 _buildVerticalDivider(),
                 _buildAmountColumn(
                   'Balance',
@@ -692,7 +709,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
     return Container(
       height: 30,
       width: 1,
-      color: Colors.white.withValues(alpha: 0.1),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
       margin: const EdgeInsets.symmetric(horizontal: 12),
     );
   }

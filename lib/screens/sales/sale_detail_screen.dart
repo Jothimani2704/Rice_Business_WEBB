@@ -103,7 +103,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     final isUnpaid = paidAmount == 0;
 
     String status = 'PAID';
-    Color statusColor = Colors.greenAccent;
+    Color statusColor = Theme.of(context).colorScheme.primary;
     if (isUnpaid) {
       status = 'UNPAID';
       statusColor = Colors.redAccent;
@@ -122,7 +122,11 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -131,8 +135,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,11 +160,11 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Sale Details',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -202,8 +207,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: Theme.of(context).colorScheme.primary
@@ -234,8 +238,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 children: [
                                   Text(
                                     'Sale #${_sale!['id']}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -244,7 +248,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   Text(
                                     '$dateStr • $timeStr',
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 13,
@@ -296,11 +300,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -322,7 +325,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.5,
                                       ),
                                     ),
@@ -331,7 +334,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   child: Text(
                                     _getInitials(_sale!['customerName']),
                                     style: TextStyle(
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       fontSize: 18,
@@ -347,8 +350,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                     children: [
                                       Text(
                                         _sale!['customerName'],
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.onSurface,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -357,7 +360,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                       Text(
                                         _sale!['customerPhone'] ?? '',
                                         style: TextStyle(
-                                          color: Colors.greenAccent.withValues(
+                                          color: Theme.of(context).colorScheme.primary.withValues(
                                             alpha: 0.8,
                                           ),
                                           fontSize: 13,
@@ -428,10 +431,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text(
+                      Text(
                         'Sale Items',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -442,11 +445,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -483,8 +485,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                         children: [
                                           Text(
                                             item['productName'],
-                                            style: const TextStyle(
-                                              color: Colors.white,
+                                            style: TextStyle(
+                                              color: Theme.of(context).colorScheme.onSurface,
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -493,7 +495,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                           Text(
                                             '${item['brandName']} • ${bagSize > 0 ? '$bagSize kg' : ''}',
                                             style: TextStyle(
-                                              color: Colors.greenAccent
+                                              color: Theme.of(context).colorScheme.primary
                                                   .withValues(alpha: 0.8),
                                               fontSize: 12,
                                             ),
@@ -511,7 +513,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                             Text(
                                               '${numFormat.format(qty)} bags',
                                               style: TextStyle(
-                                                color: Colors.greenAccent
+                                                color: Theme.of(context).colorScheme.primary
                                                     .withValues(alpha: 0.8),
                                                 fontSize: 12,
                                               ),
@@ -530,8 +532,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                         const SizedBox(height: 4),
                                         Text(
                                           '₹${numFormat.format(amt)}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.onSurface,
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -543,7 +545,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               );
                             }),
 
-                            Divider(color: Colors.white.withValues(alpha: 0.1)),
+                            Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
                             const SizedBox(height: 8),
 
                             Row(
@@ -557,7 +559,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 Text(
                                   '${saleItems.length} items • ${numFormat.format(totalBags)} bags',
                                   style: TextStyle(
-                                    color: Colors.greenAccent.withValues(
+                                    color: Theme.of(context).colorScheme.primary.withValues(
                                       alpha: 0.8,
                                     ),
                                     fontSize: 13,
@@ -571,10 +573,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       const SizedBox(height: 16),
 
                       // Payment Summary
-                      const Text(
+                      Text(
                         'Payment Summary',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -584,11 +586,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -596,14 +597,14 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                             _buildSummaryRow(
                               'Subtotal',
                               totalAmount,
-                              Colors.white,
+                              Theme.of(context).colorScheme.onSurface,
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 vertical: 8.0,
                               ),
                               child: Divider(
-                                color: Colors.greenAccent.withValues(
+                                color: Theme.of(context).colorScheme.primary.withValues(
                                   alpha: 0.2,
                                 ),
                               ),
@@ -611,13 +612,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                             _buildSummaryRow(
                               'Total Amount',
                               totalAmount,
-                              Colors.greenAccent,
+                              Theme.of(context).colorScheme.primary,
                             ),
                             const SizedBox(height: 12),
                             _buildSummaryRow(
                               'Paid During Sale',
                               paidAmount,
-                              Colors.white,
+                              Theme.of(context).colorScheme.onSurface,
                             ),
                             const SizedBox(height: 12),
                             _buildSummaryRow(
@@ -632,10 +633,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       const SizedBox(height: 16),
 
                       // Business Impact
-                      const Text(
+                      Text(
                         'Business Impact',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -644,11 +645,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Column(
@@ -660,7 +660,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   children: [
                                     Icon(
                                       Icons.check_circle_outline,
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       size: 18,
@@ -680,7 +680,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 Text(
                                   '${numFormat.format(totalBags)} Bags',
                                   style: TextStyle(
-                                    color: Colors.greenAccent.withValues(
+                                    color: Theme.of(context).colorScheme.primary.withValues(
                                       alpha: 0.8,
                                     ),
                                     fontSize: 14,
@@ -696,7 +696,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   children: [
                                     Icon(
                                       Icons.check_circle_outline,
-                                      color: Colors.greenAccent.withValues(
+                                      color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
                                       ),
                                       size: 18,
@@ -797,11 +797,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor
-                              .withValues(alpha: 0.5),
+                          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -885,21 +884,21 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
           borderRadius: BorderRadius.circular(12),
           border: isPrimary
               ? null
-              : Border.all(color: Colors.greenAccent.withValues(alpha: 0.5)),
+              : Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: isPrimary ? Colors.black : Colors.greenAccent,
+              color: isPrimary ? Colors.black : Theme.of(context).colorScheme.primary,
               size: 20,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isPrimary ? Colors.black : Colors.greenAccent,
+                color: isPrimary ? Colors.black : Theme.of(context).colorScheme.primary,
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),

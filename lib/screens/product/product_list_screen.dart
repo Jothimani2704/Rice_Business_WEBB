@@ -68,7 +68,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+  color: Theme.of(context).brightness == Brightness.dark
+      ? null
+      : Theme.of(context).scaffoldBackgroundColor,
+  gradient: Theme.of(context).brightness == Brightness.dark
+      ? RadialGradient(
             center: const Alignment(0, -0.6),
             radius: 1.2,
             colors: [
@@ -77,8 +81,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Colors.black,
             ],
             stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
+          )
+      : null,
+),
         child: SafeArea(
           child: Column(
             children: [
@@ -101,10 +106,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Products',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
@@ -112,7 +117,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           Text(
                             'Manage rice inventory',
                             style: TextStyle(
-                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                               fontSize: 13,
                             ),
                           ),
@@ -158,11 +163,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                           ),
                         ),
                         child: TextField(
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             icon: Icon(
                               Icons.search,
@@ -184,7 +189,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.greenAccent.withValues(alpha: 0.5),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Icon(
@@ -218,11 +223,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor
-                        .withValues(alpha: 0.5),
+                    color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                     ),
                   ),
                   child: Row(
@@ -236,17 +240,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       Container(
                         width: 1,
                         height: 40,
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                       ),
                       _buildStatColumn(
                         numFormat.format(_totalBags),
                         'Total Bags',
-                        Colors.greenAccent,
+                        Theme.of(context).colorScheme.primary,
                       ),
                       Container(
                         width: 1,
                         height: 40,
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                       ),
                       _buildStatColumn(
                         _lowStockCount.toString(),
@@ -317,8 +321,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.add, color: Colors.black, size: 20),
+            children: [
+              Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary, size: 20),
               SizedBox(width: 8),
               Text(
                 'Add Product',
@@ -346,7 +350,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.white.withValues(alpha: 0.1)
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -354,7 +358,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ? Colors.redAccent.withValues(alpha: 0.8)
                 : (isSelected
                       ? Theme.of(context).colorScheme.primary
-                      : Colors.white.withValues(alpha: 0.3)),
+                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
           ),
         ),
         child: Text(
@@ -405,7 +409,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     } else if (isLowStock) {
       statusColor = Colors.redAccent;
     } else {
-      statusColor = Colors.greenAccent;
+      statusColor = Theme.of(context).colorScheme.primary;
     }
 
     return GestureDetector(
@@ -424,12 +428,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isLowStock
                 ? Colors.redAccent.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.1),
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -458,8 +462,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       Expanded(
                         child: Text(
                           product['name'],
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -477,7 +481,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   Text(
                     product['brand'],
                     style: TextStyle(
-                      color: Colors.greenAccent.withValues(alpha: 0.8),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                       fontSize: 13,
                     ),
                   ),
@@ -492,14 +496,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Colors.greenAccent.withValues(alpha: 0.5),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                           ),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           product['weight'],
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 12,
                           ),
                         ),
@@ -535,7 +539,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       Container(
                         width: 1,
                         height: 30,
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                       ),
 
                       Column(
