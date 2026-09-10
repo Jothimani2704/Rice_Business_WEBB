@@ -154,8 +154,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         : 'AD';
     final profileImageUrl = ApiConfig.getImageUrl(user?['profileImageUrl']);
 
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white60 : Colors.black54;
+    final iconColor = isDark ? Colors.white54 : Colors.black54;
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F1E16) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F1E16) : theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Edit Profile',
@@ -203,7 +207,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                               color: colorScheme.primary,
                               width: 1.5,
                             ),
-                            color: isDark ? const Color(0xFF192A20) : Colors.grey.shade100,
+                            color: isDark ? const Color(0xFF192A20) : Colors.grey.shade200,
                           ),
                           alignment: Alignment.center,
                           child: _isUploadingImage
@@ -225,8 +229,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                         fit: BoxFit.cover,
                                         errorBuilder: (context, error, stackTrace) => Text(
                                           initials,
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: textColor,
                                             fontSize: 28,
                                             fontWeight: FontWeight.bold,
                                             fontFamily: 'serif',
@@ -236,8 +240,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                     )
                                   : Text(
                                       initials,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : colorScheme.primary,
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         fontFamily: 'serif',
@@ -271,10 +275,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Admin Account',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -284,8 +288,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         _storeNameController.text.isNotEmpty
                             ? _storeNameController.text
                             : 'Vellore Rice Mart',
-                        style: const TextStyle(
-                          color: Colors.white60,
+                        style: TextStyle(
+                          color: subtextColor,
                           fontSize: 14,
                         ),
                       ),
@@ -310,7 +314,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 label: 'Username',
                 placeholder: 'admin',
                 icon: Icons.person_outline,
-                suffixIcon: const Icon(Icons.lock_outline, color: Colors.white54, size: 20),
+                suffixIcon: Icon(Icons.lock_outline, color: iconColor, size: 20),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter username';
@@ -347,10 +351,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Leave blank to keep your current password.',
                 style: TextStyle(
-                  color: Colors.white60,
+                  color: subtextColor,
                   fontSize: 14,
                 ),
               ),
@@ -364,7 +368,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: Colors.white54,
+                    color: iconColor,
                     size: 20,
                   ),
                   onPressed: () {
@@ -391,7 +395,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: Colors.white54,
+                    color: iconColor,
                     size: 20,
                   ),
                   onPressed: () {
@@ -417,7 +421,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: Colors.white54,
+                    color: iconColor,
                     size: 20,
                   ),
                   onPressed: () {
@@ -447,11 +451,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       size: 20,
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Use at least 8 characters with a number.',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 14,
                         ),
                       ),
@@ -492,19 +496,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: colorScheme.primary,
-                        foregroundColor: Colors.black, // Dark text on gold button
+                        foregroundColor: isDark ? Colors.black : Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 0,
                       ),
                       child: _isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 24,
                               width: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                color: Colors.black,
+                                color: isDark ? Colors.black : Colors.white,
                               ),
                             )
                           : const Text(
@@ -538,10 +542,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final labelColor = isDark ? Colors.white54 : Colors.black54;
+    final hintColor = isDark ? Colors.white24 : Colors.black38;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF14241C) : Colors.white,
+        color: isDark ? const Color(0xFF14241C) : Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
@@ -560,8 +567,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.white54,
+                  style: TextStyle(
+                    color: labelColor,
                     fontSize: 12,
                   ),
                 ),
@@ -570,13 +577,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   obscureText: obscureText,
                   validator: validator,
                   onChanged: onChanged,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
                     hintText: placeholder,
-                    hintStyle: const TextStyle(color: Colors.white24),
+                    hintStyle: TextStyle(color: hintColor),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 4),
