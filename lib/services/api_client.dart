@@ -73,6 +73,33 @@ class ApiClient {
     }
   }
 
+  static Future<dynamic> postMultipart(String endpoint, {required List<int> fileBytes, required String filename}) async {
+    final url = Uri.parse('$_baseUrl$endpoint');
+    try {
+      final request = http.MultipartRequest('POST', url);
+      final token = await TokenStorage.getToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      final multipartFile = http.MultipartFile.fromBytes(
+        'image',
+        fileBytes,
+        filename: filename,
+      );
+      
+      request.files.add(multipartFile);
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(503, 'Cannot connect to the server. Is the backend running?');
+    }
+  }
+
   static dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;

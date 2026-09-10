@@ -43,4 +43,17 @@ class AuthService {
       rethrow;
     }
   }
+
+  static Future<Map<String, dynamic>?> uploadProfileImage(List<int> fileBytes, String filename) async {
+    try {
+      final response = await ApiClient.postMultipart(
+        '/auth/profile-image',
+        fileBytes: fileBytes,
+        filename: filename,
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

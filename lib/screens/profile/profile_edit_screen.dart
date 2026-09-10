@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../config/api_config.dart';
 import '../../providers/auth_provider.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -16,8 +18,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _storeNameController = TextEditingController();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isUploadingImage = false;
+  bool _obscureCurrent = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
 
   @override
   void initState() {
@@ -35,11 +42,71 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _storeNameController.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+
+    if (image == null) return;
+
+    setState(() => _isUploadingImage = true);
+
+    try {
+      final bytes = await image.readAsBytes();
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.uploadProfileImage(bytes, image.name);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile photo updated successfully!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage.isNotEmpty
+                  ? authProvider.errorMessage
+                  : 'Failed to upload photo'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error uploading photo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
   }
 
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_newPasswordController.text.isNotEmpty &&
+        _newPasswordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('New passwords do not match'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -80,24 +147,170 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
+    final user = context.watch<AuthProvider>().user;
+    final username = user?['username'] ?? 'Admin';
+    final initials = username.length >= 2
+        ? username.substring(0, 2).toUpperCase()
+        : 'AD';
+    final profileImageUrl = ApiConfig.getImageUrl(user?['profileImageUrl']);
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0F1E16) : Colors.white,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(
+            color: colorScheme.primary,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'serif',
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: colorScheme.primary),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.help_outline, color: colorScheme.primary),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTextField(
+              // Header Section
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.primary,
+                              width: 1.5,
+                            ),
+                            color: isDark ? const Color(0xFF192A20) : Colors.grey.shade100,
+                          ),
+                          alignment: Alignment.center,
+                          child: _isUploadingImage
+                              ? SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colorScheme.primary,
+                                  ),
+                                )
+                              : profileImageUrl != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(40),
+                                      child: Image.network(
+                                        profileImageUrl,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Text(
+                                          initials,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'serif',
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      initials,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'serif',
+                                      ),
+                                    ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF0F1E16) : Colors.white,
+                                width: 3,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 14,
+                              color: isDark ? const Color(0xFF0F1E16) : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Admin Account',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _storeNameController.text.isNotEmpty
+                            ? _storeNameController.text
+                            : 'Vellore Rice Mart',
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Profile Information Section
+              Text(
+                'Profile Information',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildCustomTextField(
                 controller: _usernameController,
                 label: 'Username',
+                placeholder: 'admin',
                 icon: Icons.person_outline,
+                suffixIcon: const Icon(Icons.lock_outline, color: Colors.white54, size: 20),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter username';
@@ -106,9 +319,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              _buildTextField(
+              _buildCustomTextField(
                 controller: _storeNameController,
                 label: 'Store Name',
+                placeholder: 'Vellore Rice Mart',
                 icon: Icons.storefront_outlined,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -116,29 +330,57 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   }
                   return null;
                 },
+                onChanged: (val) {
+                  setState(() {});
+                },
               ),
+
               const SizedBox(height: 32),
+
+              // Security Section
               Text(
-                'Change Password (Optional)',
+                'Security',
                 style: TextStyle(
                   color: colorScheme.primary,
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _currentPasswordController,
-                label: 'Current Password',
-                icon: Icons.lock_outline,
-                obscureText: true,
+              const SizedBox(height: 4),
+              const Text(
+                'Leave blank to keep your current password.',
+                style: TextStyle(
+                  color: Colors.white60,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 16),
-              _buildTextField(
+              _buildCustomTextField(
+                controller: _currentPasswordController,
+                label: 'Current Password',
+                placeholder: 'Current Password',
+                icon: Icons.lock_outline,
+                obscureText: _obscureCurrent,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.white54,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureCurrent = !_obscureCurrent;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildCustomTextField(
                 controller: _newPasswordController,
                 label: 'New Password',
-                icon: Icons.lock_reset_outlined,
-                obscureText: true,
+                placeholder: 'New Password',
+                icon: Icons.key_outlined,
+                obscureText: _obscureNew,
                 validator: (value) {
                   if (_currentPasswordController.text.isNotEmpty &&
                       (value == null || value.isEmpty)) {
@@ -146,36 +388,137 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   }
                   return null;
                 },
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _updateProfile,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.white54,
+                    size: 20,
                   ),
-                  elevation: 0,
+                  onPressed: () {
+                    setState(() {
+                      _obscureNew = !_obscureNew;
+                    });
+                  },
                 ),
-                child: _isLoading
-                    ? SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: colorScheme.onPrimary,
-                        ),
-                      )
-                    : const Text(
-                        'Save Changes',
+              ),
+              const SizedBox(height: 16),
+              _buildCustomTextField(
+                controller: _confirmPasswordController,
+                label: 'Confirm New Password',
+                placeholder: 'Confirm New Password',
+                icon: Icons.security_outlined,
+                obscureText: _obscureConfirm,
+                validator: (value) {
+                  if (_newPasswordController.text.isNotEmpty && value != _newPasswordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.white54,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureConfirm = !_obscureConfirm;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              // Info Box
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF192A20) : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Use at least 8 characters with a number.',
                         style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: colorScheme.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: colorScheme.primary,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: Colors.black, // Dark text on gold button
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Text(
+                              'Save Changes',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -183,60 +526,67 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildCustomTextField({
     required TextEditingController controller,
     required String label,
+    required String placeholder,
     required IconData icon,
     bool obscureText = false,
+    Widget? suffixIcon,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: theme.colorScheme.primary),
-        filled: true,
-        fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.05)
-            : Colors.black.withValues(alpha: 0.02),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF14241C) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.05),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, color: theme.colorScheme.primary, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                  ),
+                ),
+                TextFormField(
+                  controller: controller,
+                  obscureText: obscureText,
+                  validator: validator,
+                  onChanged: onChanged,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: placeholder,
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: theme.colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Colors.redAccent,
-            width: 1,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Colors.redAccent,
-            width: 2,
-          ),
-        ),
+          if (suffixIcon != null) suffixIcon,
+        ],
       ),
     );
   }

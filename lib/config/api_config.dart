@@ -9,4 +9,16 @@ class ApiConfig {
     // For Android/iOS mobile app - LAN IP use pannanum
     return 'http://192.168.1.47:5260/api';
   }
+
+  static String get serverUrl {
+    return baseUrl.replaceAll('/api', '');
+  }
+
+  static String? getImageUrl(String? relativePath) {
+    if (relativePath == null || relativePath.isEmpty) return null;
+    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+      return relativePath;
+    }
+    return '$serverUrl$relativePath';
+  }
 }

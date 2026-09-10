@@ -99,4 +99,26 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     return false;
   }
+
+  Future<bool> uploadProfileImage(List<int> bytes, String filename) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+
+    try {
+      final updatedUser = await AuthService.uploadProfileImage(bytes, filename);
+      if (updatedUser != null) {
+        _user = updatedUser;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
 }

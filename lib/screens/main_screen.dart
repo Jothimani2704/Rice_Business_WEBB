@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rice_business_app/providers/theme_provider.dart';
 
+import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
 import 'profile/profile_edit_screen.dart';
 import 'login_screen.dart';
@@ -69,47 +70,59 @@ class _MainScreenState extends State<MainScreen> {
             setState(() {
               _currentIndex = 0;
             });
-          } else {
-            // Can't pop, we are at root of home tab. Just do nothing or add system exit if needed.
           }
         }
       },
       child: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _pages),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard),
-              label: 'Dashboard',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.currency_rupee_outlined),
-              selectedIcon: Icon(Icons.currency_rupee),
-              label: 'Payments',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.shopping_bag_outlined),
-              selectedIcon: Icon(Icons.shopping_bag),
-              label: 'Sales',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.people_outlined),
-              selectedIcon: Icon(Icons.people),
-              label: 'Customers',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.menu),
-              selectedIcon: Icon(Icons.menu),
-              label: 'Menu',
-            ),
-          ],
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.dashboard_outlined),
+                selectedIcon: Icon(Icons.dashboard),
+                label: 'Dashboard',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.currency_rupee_outlined),
+                selectedIcon: Icon(Icons.currency_rupee),
+                label: 'Payments',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.shopping_bag_outlined),
+                selectedIcon: Icon(Icons.shopping_bag),
+                label: 'Sales',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.people_outlined),
+                selectedIcon: Icon(Icons.people),
+                label: 'Customers',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.menu),
+                selectedIcon: Icon(Icons.menu),
+                label: 'Menu',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -131,6 +144,7 @@ class MoreMenuPlaceholder extends StatelessWidget {
     final username = user?['username'] ?? 'Admin';
     final role = user?['role']?.toString().toUpperCase() ?? 'ADMIN';
     final storeName = user?['storeName'] ?? 'Vellore Rice Mart';
+    final profileImageUrl = ApiConfig.getImageUrl(user?['profileImageUrl']);
 
     final initials = username.length >= 2
         ? username.substring(0, 2).toUpperCase()
@@ -250,15 +264,34 @@ class MoreMenuPlaceholder extends StatelessWidget {
                           ),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
-                          initials,
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'serif',
-                          ),
-                        ),
+                        child: profileImageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: Image.network(
+                                  profileImageUrl,
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Text(
+                                    initials,
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'serif',
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                initials,
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'serif',
+                                ),
+                              ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
