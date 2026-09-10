@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'dart:ui';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,6 +24,27 @@ class _LoginScreenState extends State<LoginScreen> {
   // Premium Color Palette
   final Color _accentGold = const Color(0xFFE5C07B);
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUsername = prefs.getString('saved_username');
+    final savedPassword = prefs.getString('saved_password');
+    final rememberMe = prefs.getBool('remember_me') ?? false;
+
+    if (rememberMe && savedUsername != null && savedPassword != null) {
+      setState(() {
+        _usernameController.text = savedUsername;
+        _passwordController.text = savedPassword;
+        _rememberMe = true;
+      });
+    }
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -33,7 +56,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Navigation is handled automatically by Consumer<AuthProvider> in main.dart.
     // When _isAuthenticated becomes true, main.dart switches to MainScreen.
-    if (!success) {
+    if (success) {
+      final prefs = await SharedPreferences.getInstance();
+      if (_rememberMe) {
+        await prefs.setString('saved_username', _usernameController.text.trim());
+        await prefs.setString('saved_password', _passwordController.text);
+        await prefs.setBool('remember_me', true);
+      } else {
+        await prefs.remove('saved_username');
+        await prefs.remove('saved_password');
+        await prefs.setBool('remember_me', false);
+      }
+    } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -290,14 +324,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 56,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Theme.of(context).colorScheme.surface,
-                                      Theme.of(context).primaryColor,
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Theme.of(context).colorScheme.primary,
+                                        Theme.of(context).colorScheme.secondary,
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
                                   border: Border.all(
                                     color: _accentGold.withValues(alpha: 0.5),
                                     width: 1,
@@ -337,16 +371,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).colorScheme.onSurface,
+                                                color: Theme.of(context).colorScheme.onPrimary,
                                                 letterSpacing: 1.5,
                                               ),
                                             ),
                                             const SizedBox(width: 8),
                                             Icon(
                                               Icons.arrow_forward,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
+                                              color: Theme.of(context).colorScheme.onPrimary,
                                               size: 20,
                                             ),
                                           ],
@@ -448,7 +480,9 @@ class _LoginScreenState extends State<LoginScreen> {
               )
             : null,
         filled: true,
-        fillColor: Theme.of(context).primaryColor.withValues(alpha: 0.6),
+        fillColor: Theme.of(context).brightness == Brightness.dark 
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.6)
+            : Theme.of(context).colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),

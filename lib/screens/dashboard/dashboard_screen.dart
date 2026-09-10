@@ -159,15 +159,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1B4D2B), Color(0xFF0D2916)],
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary
-                          .withOpacity(0.3),
+                      color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
                       width: 1,
                     ),
                   ),
@@ -180,7 +182,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               'Today\'s Business',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -189,7 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               '₹${numFormat.format(todaysSalesAmount)}',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
@@ -201,9 +203,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 Text(
                                   'Sales',
                                   style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline,
+                                    color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
                                     fontSize: 14,
                                   ),
                                 ),
@@ -221,14 +221,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     children: [
                                       Icon(
                                         Icons.arrow_upward,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(context).colorScheme.onPrimary,
                                         size: 12,
                                       ),
                                       SizedBox(width: 4),
                                       Text(
                                         '+% Today',
                                         style: TextStyle(
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color: Theme.of(context).colorScheme.onPrimary,
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -244,7 +244,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Icon(
                         Icons.bar_chart,
                         size: 80,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
                       ),
                     ],
                   ),

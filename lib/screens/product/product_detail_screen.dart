@@ -170,7 +170,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.product['productName'],
+                                    widget.product['name'],
                                     style: TextStyle(
                                       color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 20,
@@ -179,7 +179,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    widget.product['brandName'],
+                                    widget.product['brand'],
                                     style: TextStyle(
                                       color: Theme.of(context).colorScheme.primary.withValues(
                                         alpha: 0.8,
@@ -725,7 +725,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           children: [
                             _buildInfoRow(
                               'Product Name',
-                              widget.product['productName'],
+                              widget.product['name'],
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -733,7 +733,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                             _buildInfoRow(
                               'Brand Name',
-                              widget.product['brandName'],
+                              widget.product['brand'],
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.0),

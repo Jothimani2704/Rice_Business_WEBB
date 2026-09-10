@@ -122,17 +122,22 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark
+        ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+        : Theme.of(context).colorScheme.surface;
+    final cardBorderColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1);
+    final accentColor = Theme.of(context).colorScheme.secondary;
+
     return Scaffold(
-      backgroundColor: primaryGreen,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: GestureDetector(
-            onTap: () {
-              if (Navigator.canPop(context)) Navigator.pop(context);
-            },
-            child: Icon(Icons.arrow_back, color: Color(0xFFD4AF37)),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -142,7 +147,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             Text(
               _isEditing ? 'Edit Product' : 'Add Product',
               style: TextStyle(
-                color: textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 22,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0.5,
@@ -168,7 +173,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: accentGold, width: 2),
+                border: Border.all(color: accentColor, width: 2),
                 image: const DecorationImage(
                   image: AssetImage('assets/images/sack_of_rice_icon.jpg'),
                   fit: BoxFit.cover,
@@ -178,7 +183,21 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           ),
         ],
       ),
-      body: SafeArea(
+      body: Container(
+        color: isDark ? null : Theme.of(context).scaffoldBackgroundColor,
+        decoration: isDark ? BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.6),
+            radius: 1.2,
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).primaryColor,
+              Colors.black,
+            ],
+            stops: const [0.0, 0.6, 1.0],
+          ),
+        ) : null,
+        child: SafeArea(
         child: _isLoading
             ? Center(
                 child: CircularProgressIndicator(
@@ -209,18 +228,16 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                             child: OutlinedButton(
                               onPressed: () => Navigator.pop(context),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .primary,
-                                side: BorderSide(color: accentGold),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                                foregroundColor: Theme.of(context).colorScheme.primary,
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.secondary,
                                 ),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              child: Text(
+                              child: const Text(
                                 'Cancel',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -235,13 +252,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                             child: ElevatedButton(
                               onPressed: _saveProduct,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .primary,
-                                foregroundColor: primaryGreen,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -249,13 +262,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.check, size: 20),
+                                  const Icon(Icons.check, size: 20),
                                   const SizedBox(width: 8),
                                   Text(
-                                    _isEditing
-                                        ? 'Update Product'
-                                        : 'Save Product',
-                                    style: TextStyle(
+                                    _isEditing ? 'Update Product' : 'Save Product',
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -271,17 +282,23 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                 ),
               ),
+        ),
       ),
     );
   }
 
   Widget _buildHeaderCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceColor,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentGold.withOpacity(0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+        ),
       ),
       child: Row(
         children: [
@@ -326,12 +343,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _buildProductInfoSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceColor,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentGold.withOpacity(0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +399,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           DropdownButtonFormField<double>(
             initialValue: _selectedBagSize,
             decoration: _inputDecoration('Select bag size'),
-            dropdownColor: secondaryGreen,
+            dropdownColor: isDark
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).colorScheme.surface,
             icon: Icon(
               Icons.keyboard_arrow_down,
               color: Theme.of(context).colorScheme.primary,
@@ -435,12 +459,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _buildInitialStockInfoCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceColor,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+        ),
       ),
       child: Row(
         children: [
@@ -486,12 +515,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _buildStockLockCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceColor,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentGold.withOpacity(0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+        ),
       ),
       child: Row(
         children: [
@@ -542,12 +576,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _buildStatusCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceColor,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentGold.withOpacity(0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -652,7 +691,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: accentGold),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
