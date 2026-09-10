@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:rice_business_app/providers/theme_provider.dart';
 
 import '../providers/auth_provider.dart';
+import 'profile/profile_edit_screen.dart';
 import 'login_screen.dart';
 import 'customer/customer_list_screen.dart';
 import 'product/product_list_screen.dart';
@@ -214,20 +215,29 @@ class MoreMenuPlaceholder extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Profile Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? theme.primaryColor.withValues(alpha: 0.5)
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileEditScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.05),
+                          ? theme.primaryColor.withValues(alpha: 0.5)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.05),
+                      ),
                     ),
-                  ),
-                  child: Row(
+                    child: Row(
                     children: [
                       Container(
                         width: 48,
@@ -294,9 +304,10 @@ class MoreMenuPlaceholder extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+              ),
+              const SizedBox(height: 32),
 
-                // Business Section
+              // Business Section
                 _buildSectionTitle(context, 'Business'),
                 const SizedBox(height: 12),
                 _buildMenuCard(

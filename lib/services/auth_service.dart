@@ -27,4 +27,20 @@ class AuthService {
       return null;
     }
   }
+
+  static Future<Map<String, dynamic>?> updateProfile(String username, String storeName, {String? currentPassword, String? newPassword}) async {
+    try {
+      final body = {
+        'username': username,
+        'storeName': storeName,
+        if (currentPassword != null && currentPassword.isNotEmpty) 'currentPassword': currentPassword,
+        if (newPassword != null && newPassword.isNotEmpty) 'newPassword': newPassword,
+      };
+      
+      final response = await ApiClient.put('/auth/profile', body: body);
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

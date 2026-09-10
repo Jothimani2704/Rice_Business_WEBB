@@ -29,6 +29,7 @@ class RiceBusinessApp extends StatelessWidget {
       builder: (context, themeProvider, _) {
         return MaterialApp(
           title: 'Rice Business App',
+          debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
