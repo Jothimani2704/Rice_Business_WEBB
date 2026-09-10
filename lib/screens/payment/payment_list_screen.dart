@@ -159,47 +159,25 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (Navigator.canPop(context)) Navigator.pop(context);
-                    },
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
+              Text(
+                'Payments',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Payments',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Track customer collections',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.outline,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 4),
+              Text(
+                'Track customer collections',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -237,54 +215,54 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           Expanded(
             child: Container(
               height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                ),
               ),
-              child: TextField(
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: 'Search payment or customer',
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontSize: 14,
-                  ),
-                  prefixIcon: Icon(
+              child: Row(
+                children: [
+                  Icon(
                     Icons.search,
                     color: Theme.of(context).colorScheme.outline,
                     size: 20,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      decoration: InputDecoration(
+                        hintText: 'Search payment or customer',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.outline,
+                          fontSize: 14,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           const SizedBox(width: 12),
           Container(
             height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.filter_alt_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Filter',
-                  style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 14),
-                ),
-              ],
+            child: Icon(
+              Icons.filter_alt_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 18,
             ),
           ),
         ],
@@ -337,12 +315,17 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     required IconData icon,
     required Color color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
       ),
       child: Column(
         children: [
@@ -398,18 +381,28 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary,
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
+                alignment: Alignment.center,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add, color: Theme.of(context).primaryColor, size: 20),
+                    Icon(
+                      Icons.add,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Receive Payment',
                       style: TextStyle(
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -433,11 +426,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
+                alignment: Alignment.center,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.description_outlined,
@@ -516,13 +510,18 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     final date = payment.paymentDate;
     final dateStr = DateFormat('dd MMM yyyy • hh:mm a').format(date);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -634,7 +633,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(Icons.more_vert, color: Colors.amber, size: 20),
+                          Icon(Icons.more_vert, color: Theme.of(context).colorScheme.secondary, size: 20),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -659,7 +658,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                           const SizedBox(width: 4),
                           Icon(
                             Icons.chevron_right,
-                            color: Colors.amber,
+                            color: Theme.of(context).colorScheme.secondary,
                             size: 16,
                           ),
                         ],

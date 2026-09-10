@@ -160,19 +160,24 @@ class _StockFormScreenState extends State<StockFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(1.0, -1.0),
-            radius: 1.5,
-            colors: [
-              Theme.of(context).colorScheme.surface.withOpacity(0.5),
-              Theme.of(context).primaryColor,
-              Colors.black,
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? null
+              : Theme.of(context).scaffoldBackgroundColor,
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? RadialGradient(
+                  center: const Alignment(1.0, -1.0),
+                  radius: 1.5,
+                  colors: [
+                    Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                    Theme.of(context).primaryColor,
+                    Colors.black,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                )
+              : null,
         ),
         child: SafeArea(
           child: Column(

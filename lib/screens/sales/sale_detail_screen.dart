@@ -69,7 +69,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).primaryColor
+            : Theme.of(context).scaffoldBackgroundColor,
         body: Center(
           child: CircularProgressIndicator(
             color: Theme.of(context).colorScheme.primary,
@@ -80,7 +82,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
 
     if (_sale == null) {
       return Scaffold(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).primaryColor
+            : Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
         body: Center(
           child: Text(

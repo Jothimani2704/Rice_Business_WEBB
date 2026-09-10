@@ -841,7 +841,9 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
   void _showProductSelectionModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).primaryColor
+          : Theme.of(context).colorScheme.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),

@@ -96,17 +96,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(context))
-                              Navigator.pop(context);
-                          },
-                          child: Icon(
-                            Icons.arrow_back,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

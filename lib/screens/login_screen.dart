@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 
 import '../providers/auth_provider.dart';
-import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,12 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text,
     );
 
-    if (success) {
-      if (!mounted) return;
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
-    } else {
+    // Navigation is handled automatically by Consumer<AuthProvider> in main.dart.
+    // When _isAuthenticated becomes true, main.dart switches to MainScreen.
+    if (!success) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

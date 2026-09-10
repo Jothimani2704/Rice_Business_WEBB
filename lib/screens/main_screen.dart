@@ -676,11 +676,8 @@ class MoreMenuPlaceholder extends StatelessWidget {
         if (confirm == true) {
           if (context.mounted) {
             await context.read<AuthProvider>().logout();
-          }
-          if (context.mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            );
+            // Navigation is handled automatically by Consumer<AuthProvider> in main.dart.
+            // When _isAuthenticated becomes false, main.dart switches to LoginScreen.
           }
         }
       },

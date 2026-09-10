@@ -132,7 +132,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Background Gradient
@@ -284,7 +284,11 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 ),
               ),
               menuStyle: MenuStyle(
-                backgroundColor: WidgetStatePropertyAll(Theme.of(context).primaryColor),
+                backgroundColor: WidgetStatePropertyAll(
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).primaryColor
+                      : Theme.of(context).colorScheme.surface,
+                ),
                 elevation: const WidgetStatePropertyAll(8.0),
               ),
               enableFilter: true,
@@ -448,7 +452,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: Theme.of(context).colorScheme.primary
@@ -532,7 +538,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary
@@ -592,7 +600,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.blue.withValues(alpha: 0.1)
-              : Theme.of(context).primaryColor,
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).colorScheme.surface),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
@@ -631,7 +641,9 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).primaryColor
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
