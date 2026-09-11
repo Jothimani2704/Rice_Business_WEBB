@@ -10,6 +10,9 @@ import '../stock/stock_form_screen.dart';
 import '../payment/payment_form_screen.dart';
 import '../customer/customer_form_screen.dart';
 import '../../utils/app_events.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../config/api_config.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -135,19 +138,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     Row(
                       children: [
-                        Icon(
-                          Icons.notifications_none,
-                          color: Theme.of(context).colorScheme.primary,
+                        Stack(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.notifications_none,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(width: 16),
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: Icon(
-                            Icons.person,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 20,
-                          ),
+                        Consumer<AuthProvider>(
+                          builder: (context, authProvider, _) {
+                            final user = authProvider.user;
+                            final username = user?['username']?.toString() ?? 'AD';
+                            final profileImageUrl = ApiConfig.getImageUrl(user?['profileImageUrl']);
+                            final initials = username.length >= 2 ? username.substring(0, 2).toUpperCase() : 'AD';
+
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Theme.of(context).primaryColor,
+                              backgroundImage: profileImageUrl != null ? NetworkImage(profileImageUrl) : null,
+                              child: profileImageUrl == null
+                                  ? Text(
+                                      initials,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null,
+                            );
+                          },
                         ),
                       ],
                     ),

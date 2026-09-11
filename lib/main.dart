@@ -33,6 +33,12 @@ class RiceBusinessApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
+          builder: (context, child) {
+            return ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+              child: child!,
+            );
+          },
           home: Consumer<AuthProvider>(
             builder: (context, auth, _) {
               if (auth.isLoading) {
