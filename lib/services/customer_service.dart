@@ -38,4 +38,24 @@ class CustomerService {
       return null;
     }
   }
+
+  static Future<List<dynamic>?> getCustomerTransactions(int customerId) async {
+    try {
+      final response = await ApiClient.get('/customers/$customerId/transactions');
+      return response as List<dynamic>;
+    } catch (e) {
+      print('Error fetching customer transactions: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getCustomerAccountSummary(int customerId) async {
+    try {
+      final response = await ApiClient.get('/customers/$customerId/account-summary');
+      return response as Map<String, dynamic>;
+    } catch (e) {
+      print('Error fetching customer account summary: $e');
+      return null;
+    }
+  }
 }
