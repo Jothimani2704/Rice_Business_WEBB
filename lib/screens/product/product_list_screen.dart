@@ -18,6 +18,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   List<Map<String, dynamic>> _products = [];
   bool _isLoading = true;
   String _selectedFilter = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   final numFormat = NumberFormat('#,##,###');
 
@@ -25,6 +27,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void initState() {
     super.initState();
     _fetchProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchProducts() async {
@@ -55,8 +63,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredProducts {
-    if (_selectedFilter == 'All') return _products;
-    return _products.where((p) => p['status'] == _selectedFilter).toList();
+    List<Map<String, dynamic>> list = _products;
+    if (_selectedFilter != 'All') {
+      list = list.where((p) => p['status'] == _selectedFilter).toList();
+    }
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
+      list = list.where((p) {
+        final name = (p['name'] ?? p['productName'] ?? '').toString().toLowerCase();
+        final brand = (p['brand'] ?? p['brandName'] ?? p['category'] ?? '').toString().toLowerCase();
+        final code = (p['productCode'] ?? p['code'] ?? '').toString().toLowerCase();
+        return name.contains(q) || brand.contains(q) || code.contains(q);
+      }).toList();
+    }
+    return list;
   }
 
   @override
@@ -168,6 +188,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                         ),
                         child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
                           style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             icon: Icon(
@@ -179,6 +205,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               color: Theme.of(context).colorScheme.outline,
                             ),
                             border: InputBorder.none,
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? GestureDetector(
+                                    onTap: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.clear,
+                                      color: Theme.of(context).colorScheme.outline,
+                                      size: 18,
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
                       ),

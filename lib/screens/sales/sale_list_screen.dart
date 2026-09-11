@@ -18,6 +18,9 @@ class _SaleListScreenState extends State<SaleListScreen> {
   List<Map<String, dynamic>> _sales = [];
   bool _isLoading = true;
   String _selectedFilter = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
 
   final numFormat = NumberFormat('#,##,###');
 
@@ -30,6 +33,8 @@ class _SaleListScreenState extends State<SaleListScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     AppEvents.refreshData.removeListener(_fetchSales);
     super.dispose();
   }
@@ -82,27 +87,42 @@ class _SaleListScreenState extends State<SaleListScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredSales {
-    if (_selectedFilter == 'All') return _sales;
+    List<Map<String, dynamic>> list = _sales;
 
     if (_selectedFilter == 'Today') {
       final today = DateTime.now();
-      return _sales.where((s) {
+      list = list.where((s) {
         final saleDate = DateTime.parse(s['saleDate']);
         return saleDate.year == today.year &&
             saleDate.month == today.month &&
             saleDate.day == today.day;
       }).toList();
+    } else if (_selectedFilter == 'Pending') {
+      list = list.where((s) => (s['balanceAmount'] as num) > 0).toList();
+    } else if (_selectedFilter == 'Paid') {
+      list = list.where((s) => (s['balanceAmount'] as num) == 0).toList();
     }
 
-    if (_selectedFilter == 'Pending') {
-      return _sales.where((s) => (s['balanceAmount'] as num) > 0).toList();
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
+      list = list.where((s) {
+        final saleIdStr = 'sale #${s['id'].toString().padLeft(4, '0')}'.toLowerCase();
+        final idStr = s['id'].toString().toLowerCase();
+        final customerName = (s['customerName'] ?? '').toString().toLowerCase();
+        final customerPhone = (s['customerPhone'] ?? s['phone'] ?? '').toString().toLowerCase();
+        final paymentStatus = (s['paymentStatus'] ?? '').toString().toLowerCase();
+        final billNo = (s['billNumber'] ?? s['invoiceNumber'] ?? '').toString().toLowerCase();
+
+        return saleIdStr.contains(q) ||
+            idStr.contains(q) ||
+            customerName.contains(q) ||
+            customerPhone.contains(q) ||
+            paymentStatus.contains(q) ||
+            billNo.contains(q);
+      }).toList();
     }
 
-    if (_selectedFilter == 'Paid') {
-      return _sales.where((s) => (s['balanceAmount'] as num) == 0).toList();
-    }
-
-    return _sales;
+    return list;
   }
 
   @override
@@ -196,6 +216,13 @@ class _SaleListScreenState extends State<SaleListScreen> {
                           ),
                         ),
                         child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
                           style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             icon: Icon(
@@ -207,6 +234,21 @@ class _SaleListScreenState extends State<SaleListScreen> {
                               color: Theme.of(context).colorScheme.outline,
                             ),
                             border: InputBorder.none,
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? GestureDetector(
+                                    onTap: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.clear,
+                                      color: Theme.of(context).colorScheme.outline,
+                                      size: 18,
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
                       ),

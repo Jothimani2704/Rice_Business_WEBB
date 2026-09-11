@@ -117,6 +117,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       ),
                     ),
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () async {
                         final result = await Navigator.push(
                           context,
@@ -129,9 +130,12 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                           Navigator.pop(context, true);
                         }
                       },
-                      child: Icon(
-                        Icons.edit_outlined,
-                        color: Theme.of(context).colorScheme.primary,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.edit_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),

@@ -18,6 +18,8 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   List<Payment> _payments = [];
   bool _isLoading = true;
   String _selectedFilter = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   final numFormat = NumberFormat('#,##,###');
 
@@ -30,6 +32,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     AppEvents.refreshData.removeListener(_fetchPayments);
     super.dispose();
   }
@@ -69,17 +72,33 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     }
 
     final filteredPayments = _payments.where((payment) {
-      if (_selectedFilter == 'All') return true;
       if (_selectedFilter == 'Today') {
         final now = DateTime.now();
-        return payment.paymentDate.year == now.year &&
-            payment.paymentDate.month == now.month &&
-            payment.paymentDate.day == now.day;
+        if (payment.paymentDate.year != now.year ||
+            payment.paymentDate.month != now.month ||
+            payment.paymentDate.day != now.day) return false;
+      } else if (_selectedFilter == 'Bank') {
+        if (!payment.paymentMode.toLowerCase().contains('bank')) return false;
+      } else if (_selectedFilter != 'All') {
+        if (payment.paymentMode.toLowerCase() != _selectedFilter.toLowerCase()) return false;
       }
-      if (_selectedFilter == 'Bank') {
-        return payment.paymentMode.toLowerCase().contains('bank');
+
+      if (_searchQuery.trim().isNotEmpty) {
+        final q = _searchQuery.trim().toLowerCase();
+        final customerName = (payment.customerName ?? '').toLowerCase();
+        final mode = payment.paymentMode.toLowerCase();
+        final ref = (payment.referenceNumber ?? '').toLowerCase();
+        final amount = payment.amount.toString().toLowerCase();
+        final id = payment.id.toString().toLowerCase();
+
+        return customerName.contains(q) ||
+            mode.contains(q) ||
+            ref.contains(q) ||
+            amount.contains(q) ||
+            id.contains(q);
       }
-      return payment.paymentMode.toLowerCase() == _selectedFilter.toLowerCase();
+
+      return true;
     }).toList();
 
     return Scaffold(
@@ -233,6 +252,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: 'Search payment or customer',
@@ -241,6 +266,21 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                           fontSize: 14,
                         ),
                         border: InputBorder.none,
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                                child: Icon(
+                                  Icons.clear,
+                                  color: Theme.of(context).colorScheme.outline,
+                                  size: 18,
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                   ),

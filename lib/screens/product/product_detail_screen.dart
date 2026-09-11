@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../config/api_config.dart';
 import '../../services/stock_service.dart';
 import '../stock/stock_form_screen.dart';
+import 'product_form_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -117,10 +118,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.edit_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductFormScreen(
+                              product: widget.product,
+                            ),
+                          ),
+                        );
+                        if (result == true && mounted) {
+                          Navigator.pop(context, true);
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.edit_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 24,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Icon(
@@ -698,14 +718,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               icon: Icons.edit_note,
                               label: 'Edit Product',
                               color: Theme.of(context).colorScheme.primary,
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Edit Product: Handled on Product Form',
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductFormScreen(
+                                      product: widget.product,
                                     ),
                                   ),
                                 );
+                                if (result == true && mounted) {
+                                  Navigator.pop(context, true);
+                                }
                               },
                             ),
                           ],
@@ -885,6 +909,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
         children: [

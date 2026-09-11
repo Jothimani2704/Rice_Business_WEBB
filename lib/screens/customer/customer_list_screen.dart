@@ -18,6 +18,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   String _selectedFilter = 'All';
   List<dynamic> _customers = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -28,6 +31,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     AppEvents.refreshData.removeListener(_fetchCustomers);
     super.dispose();
   }
@@ -49,10 +54,24 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     // Apply filtering
     List<dynamic> filteredCustomers = _customers.where((customer) {
       if (_selectedFilter == 'Outstanding') {
-        return (customer['outstandingBalance'] ?? 0) > 0;
+        if ((customer['outstandingBalance'] ?? 0) <= 0) return false;
       } else if (_selectedFilter == 'Inactive') {
-        return customer['isActive'] == false;
+        if (customer['isActive'] != false) return false;
       }
+
+      if (_searchQuery.trim().isNotEmpty) {
+        final query = _searchQuery.trim().toLowerCase();
+        final name = (customer['name'] ?? customer['customerName'] ?? '').toString().toLowerCase();
+        final phone = (customer['phone'] ?? customer['phoneNumber'] ?? customer['mobileNumber'] ?? '').toString().toLowerCase();
+        final address = (customer['address'] ?? '').toString().toLowerCase();
+        final email = (customer['email'] ?? '').toString().toLowerCase();
+
+        return name.contains(query) ||
+            phone.contains(query) ||
+            address.contains(query) ||
+            email.contains(query);
+      }
+
       return true;
     }).toList();
 
@@ -120,14 +139,32 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                             ],
                           ),
                         ),
-                        Icon(
-                          Icons.search,
-                          color: Theme.of(context).colorScheme.primary,
+                        GestureDetector(
+                          onTap: () {
+                            _searchFocusNode.requestFocus();
+                          },
+                          child: Icon(
+                            Icons.search,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                         const SizedBox(width: 16),
-                        Icon(
-                          Icons.person_add_alt_1,
-                          color: Theme.of(context).colorScheme.primary,
+                        GestureDetector(
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CustomerFormScreen(),
+                              ),
+                            );
+                            if (result == true) {
+                              _fetchCustomers();
+                            }
+                          },
+                          child: Icon(
+                            Icons.person_add_alt_1,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ],
                     ),
@@ -158,6 +195,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+                              },
                               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                               decoration: InputDecoration(
                                 hintText: 'Search name or phone',
@@ -166,6 +210,21 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
+                                suffixIcon: _searchQuery.isNotEmpty
+                                    ? GestureDetector(
+                                        onTap: () {
+                                          _searchController.clear();
+                                          setState(() {
+                                            _searchQuery = '';
+                                          });
+                                        },
+                                        child: Icon(
+                                          Icons.clear,
+                                          color: Theme.of(context).colorScheme.outline,
+                                          size: 18,
+                                        ),
+                                      )
+                                    : null,
                               ),
                             ),
                           ),
