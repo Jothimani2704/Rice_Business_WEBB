@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/api_config.dart';
 import '../../services/product_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'product_form_screen.dart';
@@ -444,7 +445,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               borderRadius: BorderRadius.circular(8),
               child: product['imageUrl'] != null
                   ? Image.network(
-                      'http://localhost:5246${product['imageUrl']}',
+                      ApiConfig.getImageUrl(product['imageUrl']) ?? '',
                       width: 70,
                       height: 100,
                       fit: BoxFit.cover,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/api_config.dart';
 import '../../services/stock_service.dart';
 import '../stock/stock_form_screen.dart';
 
@@ -159,7 +160,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               clipBehavior: Clip.hardEdge,
                               child: widget.product['imageUrl'] != null
                                   ? Image.network(
-                                      'http://localhost:5246${widget.product['imageUrl']}',
+                                      ApiConfig.getImageUrl(widget.product['imageUrl']) ?? '',
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) =>
                                           Center(

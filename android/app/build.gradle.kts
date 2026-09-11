@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.ricebusiness.rice_business_app"
     compileSdk = flutter.compileSdkVersion
-// ndkVersion = flutter.ndkVersion
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
