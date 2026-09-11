@@ -153,16 +153,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               width: 80,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.inventory,
-                                  size: 40,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
+                              clipBehavior: Clip.hardEdge,
+                              child: widget.product['imageUrl'] != null
+                                  ? Image.network(
+                                      'http://localhost:5246${widget.product['imageUrl']}',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          Center(
+                                            child: Icon(
+                                              Icons.inventory,
+                                              size: 40,
+                                              color: Theme.of(context).primaryColor,
+                                            ),
+                                          ),
+                                    )
+                                  : Image.asset(
+                                      widget.product['image'] ?? 'assets/images/sack_of_rice_icon.jpg',
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(

@@ -44,10 +44,12 @@ class AuthService {
     }
   }
 
-  static Future<Map<String, dynamic>?> uploadProfileImage(List<int> fileBytes, String filename) async {
+  static Future<Map<String, dynamic>?> uploadProfileImage(
+      List<int> fileBytes, String filename) async {
     try {
-      final response = await ApiClient.postMultipart(
+      final response = await ApiClient.multipartRequest(
         '/auth/profile-image',
+        method: 'POST',
         fileBytes: fileBytes,
         filename: filename,
       );

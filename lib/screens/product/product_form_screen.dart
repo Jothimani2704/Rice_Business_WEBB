@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../services/product_service.dart';
 
@@ -24,6 +27,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   bool _isActive = true;
   double _selectedBagSize = 25.0;
   bool _isLoading = false;
+
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+  bool _removeImage = false;
 
   final List<double> _bagSizes = [5.0, 10.0, 25.0, 50.0, 75.0, 100.0];
 
@@ -82,6 +89,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _selectedImageBytes = bytes;
+        _selectedImageName = pickedFile.name;
+        _removeImage = false;
+      });
+    }
+  }
+
+  void _removeSelectedImage() {
+    setState(() {
+      _selectedImageBytes = null;
+      _selectedImageName = null;
+      _removeImage = true;
+    });
+  }
+
   Future<void> _saveProduct() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -99,9 +127,19 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
     try {
       if (_isEditing) {
-        await ProductService.updateProduct(widget.product!['id'], productData);
+        await ProductService.updateProduct(
+          widget.product!['id'], 
+          productData,
+          imageBytes: _selectedImageBytes,
+          imageName: _selectedImageName,
+          removeImage: _removeImage,
+        );
       } else {
-        await ProductService.createProduct(productData);
+        await ProductService.createProduct(
+          productData,
+          imageBytes: _selectedImageBytes,
+          imageName: _selectedImageName,
+        );
       }
 
       if (mounted) {
@@ -211,7 +249,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (_isEditing) _buildHeaderCard(),
+                      _buildImageUploadCard(),
                       const SizedBox(height: 16),
                       _buildProductInfoSection(),
                       const SizedBox(height: 16),
@@ -287,8 +325,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildImageUploadCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    Widget imageProvider;
+    if (_selectedImageBytes != null) {
+      imageProvider = Image.memory(_selectedImageBytes!, fit: BoxFit.cover);
+    } else if (widget.product?['imageUrl'] != null && !_removeImage) {
+      imageProvider = Image.network(
+        'http://localhost:5246${widget.product!['imageUrl']}',
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.broken_image, size: 40),
+      );
+    } else {
+      imageProvider = Icon(
+        Icons.add_photo_alternate,
+        size: 40,
+        color: Theme.of(context).colorScheme.primary,
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -302,18 +359,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 60,
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: AssetImage(
-                  widget.product?['image'] ??
-                      'assets/images/sack_of_rice_icon.jpg',
-                ),
-                fit: BoxFit.cover,
+          GestureDetector(
+            onTap: _pickImage,
+            child: Container(
+              width: 80,
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
+              clipBehavior: Clip.hardEdge,
+              child: imageProvider,
             ),
           ),
           const SizedBox(width: 16),
@@ -322,17 +378,44 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.product?['name'] ?? 'Unknown',
+                  'Product Image',
                   style: TextStyle(
                     color: textPrimary,
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
-                  '${widget.product?['brand']} • ${widget.product?['weight']}',
-                  style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 14),
+                  'Upload a clear image of the product (Max 5MB)',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.upload_file, size: 16),
+                      label: const Text('Browse'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                    if (_selectedImageBytes != null ||
+                        (widget.product?['imageUrl'] != null && !_removeImage)) ...[
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: _removeSelectedImage,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.redAccent,
+                        ),
+                        child: const Text('Remove'),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

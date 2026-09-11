@@ -73,22 +73,33 @@ class ApiClient {
     }
   }
 
-  static Future<dynamic> postMultipart(String endpoint, {required List<int> fileBytes, required String filename}) async {
+  static Future<dynamic> multipartRequest(
+    String endpoint, {
+    required String method,
+    Map<String, String>? fields,
+    List<int>? fileBytes,
+    String? filename,
+  }) async {
     final url = Uri.parse('$_baseUrl$endpoint');
     try {
-      final request = http.MultipartRequest('POST', url);
+      final request = http.MultipartRequest(method, url);
       final token = await TokenStorage.getToken();
       if (token != null && token.isNotEmpty) {
         request.headers['Authorization'] = 'Bearer $token';
       }
 
-      final multipartFile = http.MultipartFile.fromBytes(
-        'image',
-        fileBytes,
-        filename: filename,
-      );
-      
-      request.files.add(multipartFile);
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      if (fileBytes != null && filename != null) {
+        final multipartFile = http.MultipartFile.fromBytes(
+          'image',
+          fileBytes,
+          filename: filename,
+        );
+        request.files.add(multipartFile);
+      }
       
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);

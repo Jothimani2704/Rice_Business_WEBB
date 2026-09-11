@@ -44,6 +44,7 @@ class ProductService {
           'currentStock': currentStock,
           'status': status,
           'image': image,
+          'imageUrl': p['imageUrl'],
           'isActive': isActive,
           'minimumStockLevel': minStock,
         };
@@ -54,9 +55,37 @@ class ProductService {
     }
   }
 
-  static Future<void> createProduct(Map<String, dynamic> productData) async {
+  static Future<void> createProduct(
+    Map<String, dynamic> productData, {
+    List<int>? imageBytes,
+    String? imageName,
+  }) async {
     try {
-      await ApiClient.post('/products', body: productData);
+      if (imageBytes != null && imageName != null) {
+        final fields = <String, String>{};
+        productData.forEach((key, value) {
+          fields[key] = value.toString();
+        });
+
+        await ApiClient.multipartRequest(
+          '/products',
+          method: 'POST',
+          fields: fields,
+          fileBytes: imageBytes,
+          filename: imageName,
+        );
+      } else {
+        // Fallback for form data without image
+        final fields = <String, String>{};
+        productData.forEach((key, value) {
+          fields[key] = value.toString();
+        });
+        await ApiClient.multipartRequest(
+          '/products',
+          method: 'POST',
+          fields: fields,
+        );
+      }
     } catch (e) {
       print('Error creating product: $e');
       rethrow;
@@ -65,10 +94,25 @@ class ProductService {
 
   static Future<void> updateProduct(
     int id,
-    Map<String, dynamic> productData,
-  ) async {
+    Map<String, dynamic> productData, {
+    List<int>? imageBytes,
+    String? imageName,
+    bool removeImage = false,
+  }) async {
     try {
-      await ApiClient.put('/products/$id', body: productData);
+      final fields = <String, String>{};
+      productData.forEach((key, value) {
+        fields[key] = value.toString();
+      });
+      fields['removeImage'] = removeImage.toString();
+
+      await ApiClient.multipartRequest(
+        '/products/$id',
+        method: 'PUT',
+        fields: fields,
+        fileBytes: imageBytes,
+        filename: imageName,
+      );
     } catch (e) {
       print('Error updating product: $e');
       rethrow;

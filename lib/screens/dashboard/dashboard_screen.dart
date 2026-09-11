@@ -184,7 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ? Text(
                                       initials,
                                       style: TextStyle(
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(context).colorScheme.onPrimary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     )

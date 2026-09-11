@@ -442,12 +442,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
             // Product Image
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                product['image'],
-                width: 70,
-                height: 100,
-                fit: BoxFit.cover,
-              ),
+              child: product['imageUrl'] != null
+                  ? Image.network(
+                      'http://localhost:5246${product['imageUrl']}',
+                      width: 70,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Container(
+                            width: 70,
+                            height: 100,
+                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                            child: Icon(
+                              Icons.inventory,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                    )
+                  : Image.asset(
+                      product['image'],
+                      width: 70,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
             ),
             const SizedBox(width: 16),
 
