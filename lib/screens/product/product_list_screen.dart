@@ -112,23 +112,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.inventory_2_rounded,
                         color: Theme.of(context).colorScheme.primary,
-                        size: 20,
+                        size: 26,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
