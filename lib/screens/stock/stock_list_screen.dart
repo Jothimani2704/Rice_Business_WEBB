@@ -19,6 +19,7 @@ class _StockListScreenState extends State<StockListScreen> {
   List<Map<String, dynamic>> _inventory = [];
   bool _isLoading = true;
   String _selectedFilter = 'All Stock';
+  DateTimeRange? _selectedDateRange;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -79,11 +80,26 @@ class _StockListScreenState extends State<StockListScreen> {
     return _inventory.where((p) => p['status'] == 'Low Stock').length;
   }
 
+  int get _outOfStockCount {
+    return _inventory.where((p) => (p['currentStock'] as num) == 0).length;
+  }
+
   List<Map<String, dynamic>> get _filteredInventory {
     List<Map<String, dynamic>> list = _inventory;
 
     if (_selectedFilter != 'All Stock') {
       list = list.where((p) => p['status'] == _selectedFilter).toList();
+    }
+
+    if (_selectedDateRange != null) {
+      list = list.where((p) {
+        final rawDate = p['updatedDate'] ?? p['createdDate'] ?? p['date'];
+        if (rawDate == null) return true;
+        final date = DateTime.tryParse(rawDate.toString());
+        if (date == null) return true;
+        return date.isAfter(_selectedDateRange!.start.subtract(const Duration(seconds: 1))) &&
+            date.isBefore(_selectedDateRange!.end.add(const Duration(days: 1)));
+      }).toList();
     }
 
     if (_searchQuery.trim().isNotEmpty) {
@@ -106,6 +122,500 @@ class _StockListScreenState extends State<StockListScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => const _StockHistoryBottomSheet(),
+    );
+  }
+
+  void _showDateFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF161C24) : Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            ),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_month,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Filter Stock by Date',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildQuickDateChip(ctx, 'All Time', null),
+                  _buildQuickDateChip(
+                    ctx,
+                    'Today',
+                    DateTimeRange(
+                      start: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+                      end: DateTime.now(),
+                    ),
+                  ),
+                  _buildQuickDateChip(
+                    ctx,
+                    'Yesterday',
+                    DateTimeRange(
+                      start: DateTime.now().subtract(const Duration(days: 1)),
+                      end: DateTime.now().subtract(const Duration(days: 1)),
+                    ),
+                  ),
+                  _buildQuickDateChip(
+                    ctx,
+                    'This Week',
+                    DateTimeRange(
+                      start: DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)),
+                      end: DateTime.now(),
+                    ),
+                  ),
+                  _buildQuickDateChip(
+                    ctx,
+                    'This Month',
+                    DateTimeRange(
+                      start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+                      end: DateTime.now(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final now = DateTime.now();
+                    final picked = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                      initialDateRange: _selectedDateRange ??
+                          DateTimeRange(
+                            start: DateTime(now.year, now.month, 1),
+                            end: now,
+                          ),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: Theme.of(context).colorScheme.copyWith(
+                                  primary: Theme.of(context).colorScheme.primary,
+                                  onPrimary: Colors.black,
+                                ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedDateRange = picked;
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.date_range, color: Colors.black),
+                  label: const Text(
+                    'Custom Date Range',
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (_selectedDateRange != null) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _selectedDateRange = null;
+                      });
+                      Navigator.pop(ctx);
+                    },
+                    icon: const Icon(Icons.clear_all, color: Colors.redAccent),
+                    label: const Text(
+                      'Clear Date Filter',
+                      style: TextStyle(color: Colors.redAccent),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickDateChip(BuildContext ctx, String label, DateTimeRange? range) {
+    final isSelected = (_selectedDateRange == null && range == null) ||
+        (_selectedDateRange != null &&
+            range != null &&
+            _selectedDateRange!.start.day == range.start.day &&
+            _selectedDateRange!.end.day == range.end.day);
+
+    return FilterChip(
+      selected: isSelected,
+      label: Text(label),
+      selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+      checkmarkColor: Theme.of(context).colorScheme.primary,
+      onSelected: (selected) {
+        setState(() {
+          _selectedDateRange = range;
+        });
+        Navigator.pop(ctx);
+      },
+    );
+  }
+
+  void _showStockAnalyticsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final totalProds = _inventory.length;
+        final totalStockBags = _totalBags;
+        final totalVal = _stockValue;
+        final lowStock = _lowStockCount;
+        final outOfStock = _outOfStockCount;
+        final inStockCount = totalProds - lowStock - outOfStock;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF161C24) : Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.insert_chart_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Stock & Inventory Insights',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Real-time valuation & health analysis',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Divider(
+                height: 1,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Overview Grid
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1.6,
+                        children: [
+                          _buildAnalyticsMetricCard(
+                            title: 'Total Stock Quantity',
+                            value: '${numFormat.format(totalStockBags)} Bags',
+                            subtitle: '$totalProds Products',
+                            icon: Icons.inventory_2_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          _buildAnalyticsMetricCard(
+                            title: 'Total Stock Value',
+                            value: '₹${numFormat.format(totalVal)}',
+                            subtitle: 'Estimated asset value',
+                            icon: Icons.currency_rupee,
+                            color: Colors.greenAccent,
+                          ),
+                          _buildAnalyticsMetricCard(
+                            title: 'Low Stock Alerts',
+                            value: '$lowStock Items',
+                            subtitle: 'Needs replenishment',
+                            icon: Icons.warning_amber_rounded,
+                            color: Colors.orangeAccent,
+                          ),
+                          _buildAnalyticsMetricCard(
+                            title: 'Out of Stock',
+                            value: '$outOfStock Items',
+                            subtitle: 'Zero inventory',
+                            icon: Icons.error_outline,
+                            color: Colors.redAccent,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Stock Health Status Ratio
+                      Text(
+                        'Inventory Status Breakdown',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildBreakdownRow('Healthy (In Stock)', inStockCount, totalProds, Theme.of(context).colorScheme.primary),
+                            const SizedBox(height: 10),
+                            _buildBreakdownRow('Low Stock', lowStock, totalProds, Colors.orangeAccent),
+                            const SizedBox(height: 10),
+                            _buildBreakdownRow('Out of Stock', outOfStock, totalProds, Colors.redAccent),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnalyticsMetricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.outline,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBreakdownRow(String label, int count, int total, Color color) {
+    final pct = total == 0 ? 0.0 : (count / total);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              '$count Items (${(pct * 100).toStringAsFixed(0)}%)',
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: pct,
+            backgroundColor: color.withValues(alpha: 0.15),
+            color: color,
+            minHeight: 6,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderIconButton(
+    IconData icon, {
+    bool isActive = false,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isActive
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.25)
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isActive
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
+        ),
+      ),
     );
   }
 
@@ -184,20 +694,17 @@ class _StockListScreenState extends State<StockListScreen> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.history,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 24,
-                      ),
-                      tooltip: 'View History',
-                      onPressed: () => _showStockHistorySheet(context),
+                    _buildHeaderIconButton(
+                      Icons.calendar_month,
+                      isActive: _selectedDateRange != null,
+                      tooltip: 'Filter Stock by Date',
+                      onTap: _showDateFilterModal,
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.notifications_none,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    const SizedBox(width: 10),
+                    _buildHeaderIconButton(
+                      Icons.insert_chart_outlined,
+                      tooltip: 'Stock Analytics',
+                      onTap: _showStockAnalyticsSheet,
                     ),
                   ],
                 ),
@@ -278,6 +785,55 @@ class _StockListScreenState extends State<StockListScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              if (_selectedDateRange != null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.calendar_month,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${DateFormat('dd MMM').format(_selectedDateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.end)}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedDateRange = null;
+                            });
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // Metric Cards
               SingleChildScrollView(
