@@ -18,6 +18,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
   List<Map<String, dynamic>> _sales = [];
   bool _isLoading = true;
   String _selectedFilter = 'All';
+  DateTimeRange? _selectedDateRange;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -89,6 +90,15 @@ class _SaleListScreenState extends State<SaleListScreen> {
   List<Map<String, dynamic>> get _filteredSales {
     List<Map<String, dynamic>> list = _sales;
 
+    if (_selectedDateRange != null) {
+      final start = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day, 0, 0, 0);
+      final end = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day, 23, 59, 59);
+      list = list.where((s) {
+        final saleDate = DateTime.parse(s['saleDate']);
+        return !saleDate.isBefore(start) && !saleDate.isAfter(end);
+      }).toList();
+    }
+
     if (_selectedFilter == 'Today') {
       final today = DateTime.now();
       list = list.where((s) {
@@ -130,6 +140,8 @@ class _SaleListScreenState extends State<SaleListScreen> {
     if (_isLoading) {
       return const ListSkeleton(title: 'Sales');
     }
+
+    final currentFiltered = _filteredSales;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -200,16 +212,15 @@ class _SaleListScreenState extends State<SaleListScreen> {
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    _buildIconButton(
+                      Icons.calendar_month,
+                      isActive: _selectedDateRange != null,
+                      onTap: _showDateFilterModal,
                     ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.bar_chart,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    const SizedBox(width: 12),
+                    _buildIconButton(
+                      Icons.insert_chart_outlined,
+                      onTap: () => _showSalesAnalyticsSheet(currentFiltered),
                     ),
                   ],
                 ),
@@ -353,7 +364,6 @@ class _SaleListScreenState extends State<SaleListScreen> {
                                 Theme.of(context).colorScheme.secondary,
                               ],
                             ),
-
                             borderRadius: BorderRadius.circular(12),
                           ),
                           alignment: Alignment.center,
@@ -450,7 +460,7 @@ class _SaleListScreenState extends State<SaleListScreen> {
               const SizedBox(height: 12),
 
               Expanded(
-                child: _filteredSales.isEmpty
+                child: currentFiltered.isEmpty
                     ? Center(
                         child: Text(
                           'No sales found',
@@ -464,15 +474,47 @@ class _SaleListScreenState extends State<SaleListScreen> {
                           horizontal: 16.0,
                           vertical: 8.0,
                         ),
-                        itemCount: _filteredSales.length,
+                        itemCount: currentFiltered.length,
                         itemBuilder: (context, index) {
-                          final item = _filteredSales[index];
+                          final item = currentFiltered[index];
                           return _buildSaleCard(item);
                         },
                       ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton(
+    IconData icon, {
+    VoidCallback? onTap,
+    bool isActive = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+              : Colors.transparent,
+          border: Border.all(
+            color: isActive
+                ? Theme.of(context).colorScheme.secondary
+                : Theme.of(context).colorScheme.primary,
+            width: isActive ? 1.5 : 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          color: isActive
+              ? Theme.of(context).colorScheme.secondary
+              : Theme.of(context).colorScheme.primary,
+          size: 20,
         ),
       ),
     );
@@ -761,6 +803,513 @@ class _SaleListScreenState extends State<SaleListScreen> {
       width: 1,
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
       margin: const EdgeInsets.symmetric(horizontal: 12),
+    );
+  }
+
+  void _showDateFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2430) : Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_month, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Filter Sales by Date Range',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              if (_selectedDateRange != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Active Range: ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.end)}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _buildQuickDateChip('Today', () {
+                    final now = DateTime.now();
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: now, end: now);
+                    });
+                    Navigator.pop(context);
+                  }),
+                  _buildQuickDateChip('Yesterday', () {
+                    final y = DateTime.now().subtract(const Duration(days: 1));
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: y, end: y);
+                    });
+                    Navigator.pop(context);
+                  }),
+                  _buildQuickDateChip('Last 7 Days', () {
+                    final now = DateTime.now();
+                    final start = now.subtract(const Duration(days: 6));
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: start, end: now);
+                    });
+                    Navigator.pop(context);
+                  }),
+                  _buildQuickDateChip('This Month', () {
+                    final now = DateTime.now();
+                    final start = DateTime(now.year, now.month, 1);
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: start, end: now);
+                    });
+                    Navigator.pop(context);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.date_range),
+                      label: const Text('Custom Range'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () async {
+                        final picked = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          initialDateRange: _selectedDateRange,
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _selectedDateRange = picked;
+                          });
+                          if (context.mounted) Navigator.pop(context);
+                        }
+                      },
+                    ),
+                  ),
+                  if (_selectedDateRange != null) ...[
+                    const SizedBox(width: 12),
+                    TextButton.icon(
+                      icon: const Icon(Icons.clear, color: Colors.redAccent),
+                      label: const Text('Reset', style: TextStyle(color: Colors.redAccent)),
+                      onPressed: () {
+                        setState(() {
+                          _selectedDateRange = null;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickDateChip(String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSalesAnalyticsSheet(List<Map<String, dynamic>> salesList) {
+    final totalRevenue = salesList.fold(0.0, (sum, s) => sum + (s['totalAmount'] as num).toDouble());
+    final totalPaid = salesList.fold(0.0, (sum, s) => sum + (s['paidAmount'] as num).toDouble());
+    final totalPending = salesList.fold(0.0, (sum, s) => sum + (s['balanceAmount'] as num).toDouble());
+    final totalBags = salesList.fold(0.0, (sum, s) => sum + (s['totalQuantity'] as num).toDouble());
+    final count = salesList.length;
+    final avgBill = count > 0 ? totalRevenue / count : 0.0;
+
+    double maxBill = 0.0;
+    int paidCount = 0;
+    int partialCount = 0;
+    int unpaidCount = 0;
+
+    for (final s in salesList) {
+      final total = (s['totalAmount'] as num).toDouble();
+      final balance = (s['balanceAmount'] as num).toDouble();
+      if (total > maxBill) maxBill = total;
+
+      if (balance == 0) {
+        paidCount++;
+      } else if (balance == total) {
+        unpaidCount++;
+      } else {
+        partialCount++;
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2430) : Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.insert_chart_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Sales Analytics & Insights',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Total Revenue Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TOTAL SALES REVENUE',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '₹${numFormat.format(totalRevenue)}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.shopping_bag_outlined,
+                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$count Bills  •  ${numFormat.format(totalBags)} Bags Sold',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                Text(
+                  'Bill Status Breakdown',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildAnalyticsBreakdownRow(
+                  label: 'Fully Paid ($paidCount)',
+                  amount: totalPaid,
+                  totalAmount: totalRevenue > 0 ? totalRevenue : 1,
+                  icon: Icons.check_circle_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 12),
+                _buildAnalyticsBreakdownRow(
+                  label: 'Partially Paid ($partialCount)',
+                  amount: (totalRevenue - totalPaid - totalPending) > 0 ? (totalRevenue - totalPaid - totalPending) : (totalRevenue - totalPaid),
+                  totalAmount: totalRevenue > 0 ? totalRevenue : 1,
+                  icon: Icons.timelapse,
+                  color: Colors.amberAccent,
+                ),
+                const SizedBox(height: 12),
+                _buildAnalyticsBreakdownRow(
+                  label: 'Outstanding / Balance ($unpaidCount)',
+                  amount: totalPending,
+                  totalAmount: totalRevenue > 0 ? totalRevenue : 1,
+                  icon: Icons.pending_outlined,
+                  color: Colors.redAccent,
+                ),
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Highest Sale Bill',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '₹${numFormat.format(maxBill)}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Avg Sale per Bill',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '₹${numFormat.format(avgBill.round())}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnalyticsBreakdownRow({
+    required String label,
+    required double amount,
+    required double totalAmount,
+    required IconData icon,
+    required Color color,
+  }) {
+    final pct = totalAmount > 0 ? (amount / totalAmount).clamp(0.0, 1.0) : 0.0;
+    final pctStr = (pct * 100).toStringAsFixed(1);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '₹${numFormat.format(amount > 0 ? amount : 0)}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '$pctStr%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: pct,
+              minHeight: 6,
+              backgroundColor: color.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
