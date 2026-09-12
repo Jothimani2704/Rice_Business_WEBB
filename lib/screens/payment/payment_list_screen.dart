@@ -18,6 +18,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   List<Payment> _payments = [];
   bool _isLoading = true;
   String _selectedFilter = 'All';
+  DateTimeRange? _selectedDateRange;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -42,7 +43,6 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     try {
       final payments = await PaymentService.getPayments();
       setState(() {
-        // Sort by date descending so the newest payments are at the top
         payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
         _payments = payments;
         _isLoading = false;
@@ -62,7 +62,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   }
 
   double get _totalOutstanding {
-    return 246500; // Mocked to match UI exactly
+    return 246500;
   }
 
   @override
@@ -72,6 +72,14 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     }
 
     final filteredPayments = _payments.where((payment) {
+      if (_selectedDateRange != null) {
+        final start = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day, 0, 0, 0);
+        final end = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day, 23, 59, 59);
+        if (payment.paymentDate.isBefore(start) || payment.paymentDate.isAfter(end)) {
+          return false;
+        }
+      }
+
       if (_selectedFilter == 'Today') {
         final now = DateTime.now();
         if (payment.paymentDate.year != now.year ||
@@ -125,7 +133,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(filteredPayments),
               _buildSearchBar(),
               const SizedBox(height: 16),
               _buildMetricsRow(),
@@ -171,7 +179,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(List<Payment> currentFilteredPayments) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -224,9 +232,16 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           ),
           Row(
             children: [
-              _buildIconButton(Icons.calendar_month),
+              _buildIconButton(
+                Icons.calendar_month,
+                isActive: _selectedDateRange != null,
+                onTap: _showDateFilterModal,
+              ),
               const SizedBox(width: 12),
-              _buildIconButton(Icons.insert_chart_outlined),
+              _buildIconButton(
+                Icons.insert_chart_outlined,
+                onTap: () => _showPaymentAnalyticsSheet(currentFilteredPayments),
+              ),
             ],
           ),
         ],
@@ -234,17 +249,35 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     );
   }
 
-  Widget _buildIconButton(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary,
-          width: 1,
+  Widget _buildIconButton(
+    IconData icon, {
+    VoidCallback? onTap,
+    bool isActive = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+              : Colors.transparent,
+          border: Border.all(
+            color: isActive
+                ? Theme.of(context).colorScheme.secondary
+                : Theme.of(context).colorScheme.primary,
+            width: isActive ? 1.5 : 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
         ),
-        borderRadius: BorderRadius.circular(8),
+        child: Icon(
+          icon,
+          color: isActive
+              ? Theme.of(context).colorScheme.secondary
+              : Theme.of(context).colorScheme.primary,
+          size: 20,
+        ),
       ),
-      child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
     );
   }
 
@@ -601,154 +634,655 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           ),
         ),
         child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Icon(
+                Icons.credit_score,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
               ),
             ),
-            child: Icon(
-              Icons.credit_score,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Payment #${payment.id}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          dateStr,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          payment.customerName,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: Colors.blueAccent.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: Text(
+                            payment.paymentMode,
+                            style: const TextStyle(
+                              color: Colors.blueAccent,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                        if (payment.referenceNumber != null &&
+                            payment.referenceNumber!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Ref: ${payment.referenceNumber}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.outline,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              '₹${numFormat.format(payment.amount)}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(Icons.more_vert, color: Theme.of(context).colorScheme.secondary, size: 20),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Previous ₹${numFormat.format(payment.previousBalance)}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Balance ₹${numFormat.format(payment.newBalance)}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              color: Theme.of(context).colorScheme.secondary,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDateFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2430) : Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Row(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_month, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Filter by Date Range',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              if (_selectedDateRange != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Active: ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.end)}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _buildQuickDateChip('Today', () {
+                    final now = DateTime.now();
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: now, end: now);
+                    });
+                    Navigator.pop(context);
+                  }),
+                  _buildQuickDateChip('Yesterday', () {
+                    final y = DateTime.now().subtract(const Duration(days: 1));
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: y, end: y);
+                    });
+                    Navigator.pop(context);
+                  }),
+                  _buildQuickDateChip('Last 7 Days', () {
+                    final now = DateTime.now();
+                    final start = now.subtract(const Duration(days: 6));
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: start, end: now);
+                    });
+                    Navigator.pop(context);
+                  }),
+                  _buildQuickDateChip('This Month', () {
+                    final now = DateTime.now();
+                    final start = DateTime(now.year, now.month, 1);
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(start: start, end: now);
+                    });
+                    Navigator.pop(context);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.date_range),
+                      label: const Text('Custom Range'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () async {
+                        final picked = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          initialDateRange: _selectedDateRange,
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _selectedDateRange = picked;
+                          });
+                          if (context.mounted) Navigator.pop(context);
+                        }
+                      },
+                    ),
+                  ),
+                  if (_selectedDateRange != null) ...[
+                    const SizedBox(width: 12),
+                    TextButton.icon(
+                      icon: const Icon(Icons.clear, color: Colors.redAccent),
+                      label: const Text('Reset', style: TextStyle(color: Colors.redAccent)),
+                      onPressed: () {
+                        setState(() {
+                          _selectedDateRange = null;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickDateChip(String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentAnalyticsSheet(List<Payment> paymentsList) {
+    final total = paymentsList.fold(0.0, (sum, p) => sum + p.amount);
+    final count = paymentsList.length;
+    final avg = count > 0 ? total / count : 0.0;
+
+    double cashTotal = 0.0;
+    double upiTotal = 0.0;
+    double bankTotal = 0.0;
+    double maxSingle = 0.0;
+
+    for (final p in paymentsList) {
+      if (p.amount > maxSingle) maxSingle = p.amount;
+      final mode = p.paymentMode.toLowerCase();
+      if (mode.contains('cash')) {
+        cashTotal += p.amount;
+      } else if (mode.contains('upi')) {
+        upiTotal += p.amount;
+      } else if (mode.contains('bank')) {
+        bankTotal += p.amount;
+      } else {
+        upiTotal += p.amount;
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2430) : Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  flex: 3,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.insert_chart_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Payment Analytics',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Total Summary Box
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Payment #${payment.id}',
+                        'TOTAL COLLECTION',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 6),
                       Text(
-                        dateStr,
+                        '₹${numFormat.format(total)}',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        payment.customerName,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Colors.blueAccent.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: Text(
-                          payment.paymentMode,
-                          style: TextStyle(
-                            color: Colors.blueAccent,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                      if (payment.referenceNumber != null &&
-                          payment.referenceNumber!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ref: ${payment.referenceNumber}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.outline,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text(
-                            '₹${numFormat.format(payment.amount)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(Icons.more_vert, color: Theme.of(context).colorScheme.secondary, size: 20),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Previous ₹${numFormat.format(payment.previousBalance)}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Balance ₹${numFormat.format(payment.newBalance)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 11,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
                           Icon(
-                            Icons.chevron_right,
-                            color: Theme.of(context).colorScheme.secondary,
+                            Icons.receipt_long,
+                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
                             size: 16,
                           ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$count Payments  •  Avg ₹${numFormat.format(avg.round())}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 24),
+                Text(
+                  'Collection Breakdown by Mode',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildAnalyticsBreakdownRow(
+                  label: 'Cash',
+                  amount: cashTotal,
+                  totalAmount: total > 0 ? total : 1,
+                  icon: Icons.payments_outlined,
+                  color: Colors.greenAccent,
+                ),
+                const SizedBox(height: 12),
+                _buildAnalyticsBreakdownRow(
+                  label: 'UPI / Online',
+                  amount: upiTotal,
+                  totalAmount: total > 0 ? total : 1,
+                  icon: Icons.qr_code_2,
+                  color: Colors.purpleAccent,
+                ),
+                const SizedBox(height: 12),
+                _buildAnalyticsBreakdownRow(
+                  label: 'Bank Transfer',
+                  amount: bankTotal,
+                  totalAmount: total > 0 ? total : 1,
+                  icon: Icons.account_balance,
+                  color: Colors.blueAccent,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Highest Payment',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '₹${numFormat.format(maxSingle)}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Avg Payment Size',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '₹${numFormat.format(avg.round())}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
               ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnalyticsBreakdownRow({
+    required String label,
+    required double amount,
+    required double totalAmount,
+    required IconData icon,
+    required Color color,
+  }) {
+    final pct = totalAmount > 0 ? (amount / totalAmount) : 0.0;
+    final pctStr = (pct * 100).toStringAsFixed(1);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '₹${numFormat.format(amount)}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '$pctStr%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: pct,
+              minHeight: 6,
+              backgroundColor: color.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 }
