@@ -846,21 +846,7 @@ class _StockListScreenState extends State<StockListScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.filter_alt_outlined,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
+
                   ],
                 ),
               ),

@@ -818,21 +818,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                               ),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.filter_list,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 18,
-                            ),
-                          ),
+
                         ],
                       ),
                     ),

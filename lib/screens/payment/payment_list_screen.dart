@@ -284,83 +284,62 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 4,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search,
+              color: Theme.of(context).colorScheme.outline,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                decoration: InputDecoration(
+                  hintText: 'Search payment or customer',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontSize: 14,
+                  ),
+                  border: InputBorder.none,
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                          child: Icon(
+                            Icons.clear,
+                            color: Theme.of(context).colorScheme.outline,
+                            size: 18,
+                          ),
+                        )
+                      : null,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.search,
-                    color: Theme.of(context).colorScheme.outline,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        hintText: 'Search payment or customer',
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.outline,
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? GestureDetector(
-                                onTap: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchQuery = '';
-                                  });
-                                },
-                                child: Icon(
-                                  Icons.clear,
-                                  color: Theme.of(context).colorScheme.outline,
-                                  size: 18,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            height: 48,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-              ),
-            ),
-            child: Icon(
-              Icons.filter_alt_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 18,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
