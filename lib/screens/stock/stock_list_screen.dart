@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/product_service.dart';
+import '../../utils/app_events.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'stock_form_screen.dart';
 import 'stock_detail_screen.dart';
@@ -17,6 +18,9 @@ class _StockListScreenState extends State<StockListScreen> {
   List<Map<String, dynamic>> _inventory = [];
   bool _isLoading = true;
   String _selectedFilter = 'All Stock';
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
 
   final numFormat = NumberFormat('#,##,###');
 
@@ -24,10 +28,21 @@ class _StockListScreenState extends State<StockListScreen> {
   void initState() {
     super.initState();
     _fetchInventory();
+    AppEvents.refreshData.addListener(_fetchInventory);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    AppEvents.refreshData.removeListener(_fetchInventory);
+    super.dispose();
   }
 
   Future<void> _fetchInventory() async {
-    setState(() => _isLoading = true);
+    if (_inventory.isEmpty) {
+      setState(() => _isLoading = true);
+    }
     try {
       final products = await ProductService.getProducts();
       if (mounted) {
@@ -64,8 +79,24 @@ class _StockListScreenState extends State<StockListScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredInventory {
-    if (_selectedFilter == 'All Stock') return _inventory;
-    return _inventory.where((p) => p['status'] == _selectedFilter).toList();
+    List<Map<String, dynamic>> list = _inventory;
+
+    if (_selectedFilter != 'All Stock') {
+      list = list.where((p) => p['status'] == _selectedFilter).toList();
+    }
+
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
+      list = list.where((p) {
+        final name = (p['name'] ?? p['productName'] ?? '').toString().toLowerCase();
+        final brand = (p['brand'] ?? p['brandName'] ?? p['category'] ?? '').toString().toLowerCase();
+        final code = (p['productCode'] ?? p['code'] ?? '').toString().toLowerCase();
+        final size = (p['bagSize'] ?? p['size'] ?? '').toString().toLowerCase();
+        return name.contains(q) || brand.contains(q) || code.contains(q) || size.contains(q);
+      }).toList();
+    }
+
+    return list;
   }
 
   @override
@@ -104,15 +135,24 @@ class _StockListScreenState extends State<StockListScreen> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        if (Navigator.canPop(context)) Navigator.pop(context);
-                      },
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: Theme.of(context).colorScheme.primary,
+                      onTap: () => AppEvents.goToTab(4),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.menu_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 22,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,6 +209,13 @@ class _StockListScreenState extends State<StockListScreen> {
                           ),
                         ),
                         child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
                           style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             icon: Icon(
@@ -180,6 +227,21 @@ class _StockListScreenState extends State<StockListScreen> {
                               color: Theme.of(context).colorScheme.outline,
                             ),
                             border: InputBorder.none,
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      size: 18,
+                                      color: Theme.of(context).colorScheme.outline,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _searchController.clear();
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                  )
+                                : null,
                           ),
                         ),
                       ),
