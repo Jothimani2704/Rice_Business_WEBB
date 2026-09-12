@@ -318,12 +318,39 @@ class _StockListScreenState extends State<StockListScreen> {
         final totalProds = _inventory.length;
         final totalStockBags = _totalBags;
         final totalVal = _stockValue;
-        final lowStock = _lowStockCount;
-        final outOfStock = _outOfStockCount;
-        final inStockCount = totalProds - lowStock - outOfStock;
+        final lowStockCount = _lowStockCount;
+        final outOfStockCount = _outOfStockCount;
+        final inStockCount = totalProds - lowStockCount - outOfStockCount;
+
+        double inStockBags = 0;
+        double lowStockBags = 0;
+        double outOfStockBags = 0;
+
+        double maxStockItemBags = 0;
+        String maxStockItemName = '-';
+
+        for (final p in _inventory) {
+          final stock = (p['currentStock'] as num).toDouble();
+          final minLevel = (p['minimumStockLevel'] as num).toDouble();
+          final name = (p['name'] ?? p['productName'] ?? 'Product').toString();
+
+          if (stock > maxStockItemBags) {
+            maxStockItemBags = stock;
+            maxStockItemName = name;
+          }
+
+          if (stock == 0) {
+            outOfStockBags += stock;
+          } else if (stock <= minLevel) {
+            lowStockBags += stock;
+          } else {
+            inStockBags += stock;
+          }
+        }
+
+        final avgStockBags = totalProds > 0 ? (totalStockBags / totalProds) : 0.0;
 
         return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF161C24) : Theme.of(context).scaffoldBackgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -331,152 +358,232 @@ class _StockListScreenState extends State<StockListScreen> {
               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             ),
           ),
+          padding: const EdgeInsets.all(20),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.insert_chart_outlined,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Stock & Inventory Insights',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Real-time valuation & health analysis',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Divider(
-                height: 1,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
-                      // Overview Grid
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.6,
-                        children: [
-                          _buildAnalyticsMetricCard(
-                            title: 'Total Stock Quantity',
-                            value: '${numFormat.format(totalStockBags)} Bags',
-                            subtitle: '$totalProds Products',
-                            icon: Icons.inventory_2_outlined,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          _buildAnalyticsMetricCard(
-                            title: 'Total Stock Value',
-                            value: '₹${numFormat.format(totalVal)}',
-                            subtitle: 'Estimated asset value',
-                            icon: Icons.currency_rupee,
-                            color: Colors.greenAccent,
-                          ),
-                          _buildAnalyticsMetricCard(
-                            title: 'Low Stock Alerts',
-                            value: '$lowStock Items',
-                            subtitle: 'Needs replenishment',
-                            icon: Icons.warning_amber_rounded,
-                            color: Colors.orangeAccent,
-                          ),
-                          _buildAnalyticsMetricCard(
-                            title: 'Out of Stock',
-                            value: '$outOfStock Items',
-                            subtitle: 'Zero inventory',
-                            icon: Icons.error_outline,
-                            color: Colors.redAccent,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Stock Health Status Ratio
-                      Text(
-                        'Inventory Status Breakdown',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
-                          ),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Column(
-                          children: [
-                            _buildBreakdownRow('Healthy (In Stock)', inStockCount, totalProds, Theme.of(context).colorScheme.primary),
-                            const SizedBox(height: 10),
-                            _buildBreakdownRow('Low Stock', lowStock, totalProds, Colors.orangeAccent),
-                            const SizedBox(height: 10),
-                            _buildBreakdownRow('Out of Stock', outOfStock, totalProds, Colors.redAccent),
-                          ],
+                        child: Icon(
+                          Icons.insert_chart_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Stock Analytics & Insights',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Total Stock Asset Value Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TOTAL STOCK ASSET VALUE',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '₹${numFormat.format(totalVal)}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${numFormat.format(totalStockBags)} Total Bags  •  $totalProds Products',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Stock Status Breakdown
+              Text(
+                'Stock Status Breakdown',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildAnalyticsBreakdownRow(
+                label: 'In Stock / Healthy ($inStockCount)',
+                valueStr: '${numFormat.format(inStockBags)} Bags',
+                amount: inStockBags,
+                totalAmount: totalStockBags > 0 ? totalStockBags : 1,
+                icon: Icons.check_circle_outline,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 12),
+              _buildAnalyticsBreakdownRow(
+                label: 'Low Stock ($lowStockCount)',
+                valueStr: '${numFormat.format(lowStockBags)} Bags',
+                amount: lowStockBags,
+                totalAmount: totalStockBags > 0 ? totalStockBags : 1,
+                icon: Icons.timelapse,
+                color: Colors.amberAccent,
+              ),
+              const SizedBox(height: 12),
+              _buildAnalyticsBreakdownRow(
+                label: 'Out of Stock ($outOfStockCount)',
+                valueStr: '0 Bags',
+                amount: 0,
+                totalAmount: totalStockBags > 0 ? totalStockBags : 1,
+                icon: Icons.pending_outlined,
+                color: Colors.redAccent,
+              ),
+              const SizedBox(height: 24),
+
+              // Key Metric Cards Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Highest Stock Item',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${numFormat.format(maxStockItemBags)} Bags',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (maxStockItemName != '-')
+                            Text(
+                              maxStockItemName,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Avg Stock per Product',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${numFormat.format(avgStockBags.round())} Bags',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         );
@@ -484,104 +591,77 @@ class _StockListScreenState extends State<StockListScreen> {
     );
   }
 
-  Widget _buildAnalyticsMetricCard({
-    required String title,
-    required String value,
-    required String subtitle,
+  Widget _buildAnalyticsBreakdownRow({
+    required String label,
+    required String valueStr,
+    required double amount,
+    required double totalAmount,
     required IconData icon,
     required Color color,
   }) {
+    final pct = totalAmount > 0 ? (amount / totalAmount).clamp(0.0, 1.0) : 0.0;
+    final pctStr = (pct * 100).toStringAsFixed(1);
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-        ),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: color, size: 18),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    valueStr,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '$pctStr%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: pct,
+              backgroundColor: color.withValues(alpha: 0.15),
               color: color,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.outline,
-              fontSize: 10,
+              minHeight: 6,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBreakdownRow(String label, int count, int total, Color color) {
-    final pct = total == 0 ? 0.0 : (count / total);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              '$count Items (${(pct * 100).toStringAsFixed(0)}%)',
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: pct,
-            backgroundColor: color.withValues(alpha: 0.15),
-            color: color,
-            minHeight: 6,
-          ),
-        ),
-      ],
     );
   }
 
