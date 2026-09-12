@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/sale_service.dart';
+import '../../models/customer.dart';
 import '../customer/customer_details_screen.dart';
+import '../payment/payment_form_screen.dart';
 import 'sale_form_screen.dart';
 
 class SaleDetailScreen extends StatefulWidget {
@@ -743,13 +745,27 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               label: 'Receive Payment',
                               isPrimary: true,
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Receive Payment: Coming Soon',
+                                final custId = _sale!['customerId'] ?? 0;
+                                final custName = _sale!['customerName'] ?? 'Customer';
+                                final custPhone = _sale!['customerPhone'] ?? '';
+                                final customerObj = Customer(
+                                  id: custId,
+                                  name: custName,
+                                  mobileNumber: custPhone,
+                                  address: '',
+                                  openingBalance: 0.0,
+                                  currentBalance: (_sale!['balanceAmount'] as num?)?.toDouble() ?? 0.0,
+                                  isActive: true,
+                                  createdDate: DateTime.now(),
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PaymentFormScreen(
+                                      preSelectedCustomer: customerObj,
                                     ),
                                   ),
-                                );
+                                ).then((_) => _fetchSaleDetails());
                               },
                             ),
                           ),
@@ -760,9 +776,19 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               label: 'View Ledger',
                               isPrimary: false,
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('View Ledger: Coming Soon'),
+                                final custId = _sale!['customerId'] ?? 0;
+                                final custName = _sale!['customerName'] ?? 'Customer';
+                                final custPhone = _sale!['customerPhone'] ?? '';
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CustomerDetailsScreen(
+                                      customer: {
+                                        'id': custId,
+                                        'name': custName,
+                                        'mobileNumber': custPhone,
+                                      },
+                                    ),
                                   ),
                                 );
                               },
@@ -778,7 +804,14 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               icon: Icons.share_outlined,
                               label: 'Share Bill',
                               isPrimary: false,
-                              onTap: () {},
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Sharing Sale #${_sale!['id']} bill...'),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -787,7 +820,14 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               icon: Icons.download_outlined,
                               label: 'Download',
                               isPrimary: false,
-                              onTap: () {},
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Downloading Sale #${_sale!['id']} invoice bill...'),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
