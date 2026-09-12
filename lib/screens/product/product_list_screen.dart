@@ -153,12 +153,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.search,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 16),
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(

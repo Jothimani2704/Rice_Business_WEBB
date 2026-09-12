@@ -158,16 +158,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            _searchFocusNode.requestFocus();
-                          },
-                          child: Icon(
-                            Icons.search,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        GestureDetector(
                           onTap: () async {
                             final result = await Navigator.push(
                               context,
