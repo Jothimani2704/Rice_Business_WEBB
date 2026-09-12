@@ -178,25 +178,45 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                'Payments',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Icon(
+                  Icons.currency_rupee_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Track customer collections',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                  fontSize: 14,
-                ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Payments',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Track customer collections',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -113,16 +113,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (Navigator.canPop(context)) Navigator.pop(context);
-                      },
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                        ),
+                      ),
                       child: Icon(
-                        Icons.arrow_back,
+                        Icons.inventory_2_rounded,
                         color: Theme.of(context).colorScheme.primary,
+                        size: 20,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

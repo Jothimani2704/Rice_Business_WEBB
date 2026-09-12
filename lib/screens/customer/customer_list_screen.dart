@@ -115,6 +115,22 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.people_alt_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
