@@ -156,6 +156,23 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
       AppEvents.triggerRefresh();
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(_isCorrectionMode
+                      ? 'Payment correction applied successfully!'
+                      : 'Payment recorded successfully!'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {

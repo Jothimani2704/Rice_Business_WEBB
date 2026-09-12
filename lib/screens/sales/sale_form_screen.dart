@@ -1585,7 +1585,24 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       AppEvents.triggerRefresh(); // Trigger global data refresh
 
       if (mounted) {
-        Navigator.pop(context, true); // Return true to indicate success
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(_isEditMode
+                      ? 'Sale updated successfully!'
+                      : 'Sale completed successfully!'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

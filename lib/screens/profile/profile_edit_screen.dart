@@ -67,7 +67,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile photo updated successfully!')),
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text(
+                    'Profile photo updated successfully!',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 3),
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +137,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully!')),
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text(
+                    'Profile updated successfully!',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 3),
+            ),
           );
           Navigator.of(context).pop();
         } else {

@@ -114,6 +114,26 @@ class _StockFormScreenState extends State<StockFormScreen> {
       AppEvents.triggerRefresh();
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 10),
+                Text(
+                  isEditMode
+                      ? 'Stock transaction updated successfully!'
+                      : 'Stock added successfully!',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF2E7D32),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {

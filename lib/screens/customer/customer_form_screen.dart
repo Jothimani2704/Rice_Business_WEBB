@@ -93,13 +93,22 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              isEditMode
-                  ? 'Customer updated successfully'
-                  : 'Customer added successfully',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 10),
+                Text(
+                  isEditMode
+                      ? 'Customer updated successfully!'
+                      : 'Customer added successfully!',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF2E7D32),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
           ),
         );
       } else {
