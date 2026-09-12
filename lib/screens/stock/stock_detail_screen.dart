@@ -143,16 +143,66 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.history,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    IconButton(
+                      icon: Icon(
+                        Icons.history,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                      tooltip: 'Edit Stock Entry',
+                      onPressed: () async {
+                        if (_stockHistory.isNotEmpty) {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StockFormScreen(
+                                transaction: _stockHistory.first,
+                                preselectedProduct: widget.product,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            _fetchData();
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('No stock entry available to edit'),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(width: 16),
-                    Icon(
-                      Icons.filter_alt_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    IconButton(
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                      tooltip: 'Edit Stock Entry',
+                      onPressed: () async {
+                        if (_stockHistory.isNotEmpty) {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StockFormScreen(
+                                transaction: _stockHistory.first,
+                                preselectedProduct: widget.product,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            _fetchData();
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('No stock entry available to edit'),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(width: 16),
                     Icon(
@@ -838,126 +888,143 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: iconColor.withValues(alpha: 0.5)),
-            ),
-            child: Icon(icon, color: iconColor, size: 16),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            typeText,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.outline,
-              fontSize: 14,
+    return InkWell(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StockFormScreen(
+              transaction: history,
+              preselectedProduct: widget.product,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  '$sign${numFormat.format(qty)}',
-                  style: TextStyle(
-                    color: iconColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text('Bags', style: TextStyle(color: iconColor, fontSize: 10)),
-              ],
+        );
+        if (result == true) {
+          _fetchData();
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: iconColor.withValues(alpha: 0.5)),
+              ),
+              child: Icon(icon, color: iconColor, size: 16),
             ),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$dateStr • $timeStr',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  notes,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontSize: 11,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            const SizedBox(width: 12),
+            Text(
+              typeText,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.outline,
+                fontSize: 14,
+              ),
             ),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'Balance',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontSize: 11,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      numFormat.format(balance),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '$sign${numFormat.format(qty)}',
+                    style: TextStyle(
+                      color: iconColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 2),
-                    Text(
-                      'Bags',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(width: 4),
+                  Text('Bags', style: TextStyle(color: iconColor, fontSize: 10)),
+                ],
+              ),
             ),
-          ),
-        ],
+            Container(
+              width: 1,
+              height: 30,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$dateStr • $timeStr',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    notes,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 1,
+              height: 30,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Balance',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: 11,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        numFormat.format(balance),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        'Bags',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
