@@ -5,6 +5,7 @@ import '../../services/customer_service.dart';
 import '../../services/product_service.dart';
 import '../../services/sale_service.dart';
 import '../../utils/app_events.dart';
+import '../../utils/app_toast.dart';
 
 class SaleFormScreen extends StatefulWidget {
   final Map<String, dynamic>? existingSale;
@@ -1585,22 +1586,11 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       AppEvents.triggerRefresh(); // Trigger global data refresh
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(_isEditMode
-                      ? 'Sale updated successfully!'
-                      : 'Sale completed successfully!'),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.green.shade700,
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.showSuccess(
+          context,
+          _isEditMode
+              ? 'Sale updated successfully!'
+              : 'Sale completed successfully!',
         );
         Navigator.pop(context, true);
       }

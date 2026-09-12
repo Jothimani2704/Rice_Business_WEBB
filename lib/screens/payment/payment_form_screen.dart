@@ -5,6 +5,7 @@ import '../../services/payment_service.dart';
 import '../../services/customer_service.dart';
 import '../../models/customer.dart';
 import '../../utils/app_events.dart';
+import '../../utils/app_toast.dart';
 
 class PaymentFormScreen extends StatefulWidget {
   final Customer? preSelectedCustomer;
@@ -156,22 +157,11 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
       AppEvents.triggerRefresh();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(_isCorrectionMode
-                      ? 'Payment correction applied successfully!'
-                      : 'Payment recorded successfully!'),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.green.shade700,
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.showSuccess(
+          context,
+          _isCorrectionMode
+              ? 'Payment correction applied successfully!'
+              : 'Payment recorded successfully!',
         );
         Navigator.pop(context, true);
       }

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../services/product_service.dart';
 import '../../services/stock_service.dart';
 import '../../utils/app_events.dart';
+import '../../utils/app_toast.dart';
 
 class StockFormScreen extends StatefulWidget {
   final Map<String, dynamic>?
@@ -114,25 +115,11 @@ class _StockFormScreenState extends State<StockFormScreen> {
       AppEvents.triggerRefresh();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 10),
-                Text(
-                  isEditMode
-                      ? 'Stock transaction updated successfully!'
-                      : 'Stock added successfully!',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF2E7D32),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 3),
-          ),
+        AppToast.showSuccess(
+          context,
+          isEditMode
+              ? 'Stock transaction updated successfully!'
+              : 'Stock added successfully!',
         );
         Navigator.pop(context, true);
       }

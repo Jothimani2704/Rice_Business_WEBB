@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../services/product_service.dart';
+import '../../utils/app_toast.dart';
 
 class ProductFormScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
@@ -143,25 +144,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 10),
-                Text(
-                  widget.product != null
-                      ? 'Product updated successfully!'
-                      : 'Product created successfully!',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF2E7D32),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 3),
-          ),
+        AppToast.showSuccess(
+          context,
+          widget.product != null
+              ? 'Product updated successfully!'
+              : 'Product created successfully!',
         );
         Navigator.pop(context, true); // Return true to refresh list
       }

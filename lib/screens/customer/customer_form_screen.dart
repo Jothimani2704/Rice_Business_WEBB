@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../services/customer_service.dart';
 import '../../utils/app_events.dart';
+import '../../utils/app_toast.dart';
 
 class CustomerFormScreen extends StatefulWidget {
   final dynamic
@@ -90,27 +91,13 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
 
       if (result != null) {
         AppEvents.triggerRefresh();
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 10),
-                Text(
-                  isEditMode
-                      ? 'Customer updated successfully!'
-                      : 'Customer added successfully!',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF2E7D32),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 3),
-          ),
+        AppToast.showSuccess(
+          context,
+          isEditMode
+              ? 'Customer updated successfully!'
+              : 'Customer added successfully!',
         );
+        Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

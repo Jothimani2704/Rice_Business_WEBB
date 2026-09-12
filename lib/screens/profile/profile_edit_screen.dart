@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../config/api_config.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/app_toast.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -66,24 +67,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: const [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text(
-                    'Profile photo updated successfully!',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF2E7D32),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          AppToast.showSuccess(context, 'Profile photo updated successfully!');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -136,24 +120,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: const [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text(
-                    'Profile updated successfully!',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF2E7D32),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          AppToast.showSuccess(context, 'Profile updated successfully!');
           Navigator.of(context).pop();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
