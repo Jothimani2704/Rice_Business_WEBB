@@ -29,6 +29,18 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
 
   final numFormat = NumberFormat('#,##,###');
 
+  double _toDouble(dynamic val) {
+    if (val == null) return 0.0;
+    if (val is num) return val.toDouble();
+    return double.tryParse(val.toString()) ?? 0.0;
+  }
+
+  int _toInt(dynamic val) {
+    if (val == null) return 0;
+    if (val is num) return val.toInt();
+    return int.tryParse(val.toString()) ?? 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -62,53 +74,66 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
     final sale = widget.existingSale!;
 
     // Find customer
+    final targetCustId = sale['customerId']?.toString();
     _selectedCustomer = _customers.firstWhere(
-      (c) => c['id'] == sale['customerId'],
+      (c) => c['id']?.toString() == targetCustId,
       orElse: () => {
-        'id': sale['customerId'],
-        'name': sale['customerName'],
+        'id': sale['customerId'] ?? 0,
+        'name': sale['customerName'] ?? 'Customer',
         'mobileNumber': sale['customerPhone'] ?? '',
         'currentBalance': 0, // Fallback
       },
     );
 
     // Initialize items
-    if (sale['saleItems'] != null) {
-      _saleItems = List<Map<String, dynamic>>.from(sale['saleItems'])
+    final rawItems = sale['saleItems'] ?? sale['items'];
+    if (rawItems != null && rawItems is List) {
+      _saleItems = List<Map<String, dynamic>>.from(rawItems)
           .map((item) {
+            final prodId = item['productId'] ?? item['id'] ?? 0;
             final product = _products.firstWhere(
-              (p) => p['id'] == item['productId'],
+              (p) => p['id']?.toString() == prodId?.toString(),
               orElse: () => <String, dynamic>{},
             );
+            final qty = item['quantity'] ?? 0;
+            final rate = item['rate'] ?? item['unitPrice'] ?? item['price'] ?? 0;
+            final amt = item['amount'] ?? ((qty is num ? qty : 0) * (rate is num ? rate : 0));
             return {
-              'productId': item['productId'],
-              'productName': item['productName'],
+              'productId': prodId,
+              'productName': item['productName'] ?? product['name'] ?? 'Product',
               'brandName': item['brandName'] ?? product['brandName'] ?? '',
               'bagSize': item['bagSize'] ?? product['bagSize'] ?? 0,
               'imageUrl': product['imageUrl'] ?? '',
               'availableStock': product['currentStock'] ?? 0,
-              'quantity': item['quantity'],
-              'rate': item['rate'],
-              'amount': item['amount'],
+              'quantity': qty is num ? qty : (num.tryParse(qty.toString()) ?? 0),
+              'rate': rate is num ? rate : (num.tryParse(rate.toString()) ?? 0),
+              'amount': amt is num ? amt : (num.tryParse(amt.toString()) ?? 0),
             };
           })
           .toList();
     }
 
-    _paidAmountController.text = sale['paidAmount'].toString();
+    _paidAmountController.text = (sale['paidAmount'] ?? 0).toString();
   }
 
   double get _totalAmount {
     return _saleItems.fold(
       0.0,
-      (sum, item) => sum + ((item['quantity'] as num) * (item['rate'] as num)),
+      (sum, item) {
+        final q = (item['quantity'] as num?)?.toDouble() ?? 0.0;
+        final r = (item['rate'] as num?)?.toDouble() ?? 0.0;
+        return sum + (q * r);
+      },
     );
   }
 
   int get _totalBags {
     return _saleItems.fold(
       0,
-      (sum, item) => sum + (item['quantity'] as num).toInt(),
+      (sum, item) {
+        final q = (item['quantity'] as num?)?.toInt() ?? 0;
+        return sum + q;
+      },
     );
   }
 
@@ -492,9 +517,14 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                   ),
                 ),
                 menuStyle: MenuStyle(
-                  backgroundColor: WidgetStatePropertyAll(Theme.of(context).primaryColor),
+                  backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).primaryColor
+                        : Theme.of(context).colorScheme.surface,
+                  ),
                   elevation: const WidgetStatePropertyAll(8.0),
                 ),
+                menuHeight: 260,
                 enableFilter: true,
                 enableSearch: true,
                 trailingIcon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary),
@@ -658,7 +688,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                 Row(
                   children: [
                     Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -671,7 +701,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                           ),
                           const SizedBox(height: 4),
                           Container(
-                            height: 36,
+                            height: 38,
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: Theme.of(context).colorScheme.primary
@@ -683,51 +713,57 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                               children: [
                                 InkWell(
                                   onTap: () {
-                                    if (item['quantity'] > 1) {
+                                    final q = _toInt(item['quantity']);
+                                    if (q > 1) {
                                       setState(() {
-                                        item['quantity']--;
-                                        item['amount'] =
-                                            item['quantity'] * item['rate'];
+                                        item['quantity'] = q - 1;
+                                        item['amount'] = (q - 1) * _toDouble(item['rate']);
                                       });
                                     }
                                   },
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 6,
                                     ),
                                     child: Icon(
                                       Icons.remove,
                                       color: Theme.of(context).colorScheme.primary,
-                                      size: 16,
+                                      size: 14,
                                     ),
                                   ),
                                 ),
                                 Expanded(
-                                  child: Text(
-                                    '${item['quantity']} bags',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                      fontSize: 13,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${item['quantity']} bag',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
                                 InkWell(
                                   onTap: () {
+                                    final q = _toInt(item['quantity']);
                                     setState(() {
-                                      item['quantity']++;
-                                      item['amount'] =
-                                          item['quantity'] * item['rate'];
+                                      item['quantity'] = q + 1;
+                                      item['amount'] = (q + 1) * _toDouble(item['rate']);
                                     });
                                   },
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 6,
                                     ),
                                     child: Icon(
                                       Icons.add,
                                       color: Theme.of(context).colorScheme.primary,
-                                      size: 16,
+                                      size: 14,
                                     ),
                                   ),
                                 ),
@@ -739,7 +775,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -752,7 +788,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                           ),
                           const SizedBox(height: 4),
                           Container(
-                            height: 36,
+                            height: 38,
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             decoration: BoxDecoration(
                               border: Border.all(
@@ -783,7 +819,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                                 final newRate = double.tryParse(val) ?? 0;
                                 setState(() {
                                   item['rate'] = newRate;
-                                  item['amount'] = item['quantity'] * newRate;
+                                  item['amount'] = _toInt(item['quantity']) * newRate;
                                 });
                               },
                             ),
@@ -793,7 +829,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -806,7 +842,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                           ),
                           const SizedBox(height: 4),
                           Container(
-                            height: 36,
+                            height: 38,
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             decoration: BoxDecoration(
                               border: Border.all(
@@ -817,11 +853,15 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             alignment: Alignment.center,
-                            child: Text(
-                              '₹${numFormat.format(item['amount'] ?? 0)}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 13,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '₹${numFormat.format(item['amount'] ?? 0)}',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
@@ -998,16 +1038,14 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
 
   Widget _buildPaymentSummarySection() {
     double originalTotal = _isEditMode
-        ? (widget.existingSale!['totalAmount'] as num).toDouble()
+        ? _toDouble(widget.existingSale!['totalAmount'])
         : 0.0;
     double originalPaid = _isEditMode
-        ? (widget.existingSale!['paidAmount'] as num).toDouble()
+        ? _toDouble(widget.existingSale!['paidAmount'])
         : 0.0;
-    double currentBalance = _selectedCustomer?['currentBalance'] != null
-        ? (_selectedCustomer!['currentBalance'] as num).toDouble()
-        : _selectedCustomer?['outstandingBalance'] != null
-            ? (_selectedCustomer!['outstandingBalance'] as num).toDouble()
-            : 0.0;
+    double currentBalance = _selectedCustomer != null
+        ? _toDouble(_selectedCustomer!['currentBalance'] ?? _selectedCustomer!['outstandingBalance'])
+        : 0.0;
 
     double balanceAmount = _totalAmount - _paidAmount;
     double newCustomerBalance = _isEditMode
@@ -1270,27 +1308,26 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
   }
 
   Widget _buildImpactPreviewSection() {
-    double originalTotal = (widget.existingSale!['totalAmount'] as num)
-        .toDouble();
-    double originalPaid = (widget.existingSale!['paidAmount'] as num)
-        .toDouble();
+    double originalTotal = _toDouble(widget.existingSale?['totalAmount']);
+    double originalPaid = _toDouble(widget.existingSale?['paidAmount']);
     double originalBalanceAdded = originalTotal - originalPaid;
 
     double balanceAmount = _totalAmount - _paidAmount;
 
     double balanceAdjustment = balanceAmount - originalBalanceAdded;
 
-    double currentBalance = _selectedCustomer?['currentBalance'] != null
-        ? (_selectedCustomer!['currentBalance'] as num).toDouble()
-        : _selectedCustomer?['outstandingBalance'] != null
-            ? (_selectedCustomer!['outstandingBalance'] as num).toDouble()
-            : 0.0;
+    double currentBalance = _selectedCustomer != null
+        ? _toDouble(_selectedCustomer!['currentBalance'] ?? _selectedCustomer!['outstandingBalance'])
+        : 0.0;
     double newCustomerBalance = currentBalance + balanceAdjustment;
 
     // Calculate Stock adjustment
-    int originalBags = (widget.existingSale!['totalQuantity'] as num).toInt();
-    int bagAdjustment =
-        originalBags - _totalBags; // If original was 8, new is 7, we return +1
+    final rawBags = widget.existingSale?['totalQuantity'] ??
+        widget.existingSale?['totalBags'] ??
+        widget.existingSale?['totalQuantityBags'] ??
+        (widget.existingSale?['saleItems'] as List?)?.fold(0, (sum, i) => (sum as int) + _toInt(i['quantity']));
+    int originalBags = _toInt(rawBags);
+    int bagAdjustment = originalBags - _totalBags;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

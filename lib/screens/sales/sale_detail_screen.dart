@@ -67,6 +67,12 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     return 'assets/images/products/vellore_gold_25kg.jpg';
   }
 
+  double _toDouble(dynamic val) {
+    if (val == null) return 0.0;
+    if (val is num) return val.toDouble();
+    return double.tryParse(val.toString()) ?? 0.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -97,13 +103,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       );
     }
 
-    final saleDate = DateTime.parse(_sale!['saleDate']);
+    final saleDate = DateTime.tryParse(_sale!['saleDate']?.toString() ?? '') ?? DateTime.now();
     final dateStr = DateFormat('dd MMM yyyy').format(saleDate);
     final timeStr = DateFormat('hh:mm a').format(saleDate);
 
-    final totalAmount = (_sale!['totalAmount'] as num).toDouble();
-    final paidAmount = (_sale!['paidAmount'] as num).toDouble();
-    final balanceAmount = (_sale!['balanceAmount'] as num).toDouble();
+    final totalAmount = _toDouble(_sale!['totalAmount']);
+    final paidAmount = _toDouble(_sale!['paidAmount']);
+    final balanceAmount = _toDouble(_sale!['balanceAmount']);
 
     final isPartial = balanceAmount > 0 && paidAmount > 0;
     final isUnpaid = paidAmount == 0;
@@ -118,10 +124,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       statusColor = Theme.of(context).colorScheme.primary;
     }
 
-    final saleItems = List<Map<String, dynamic>>.from(_sale!['saleItems']);
+    final saleItems = List<Map<String, dynamic>>.from(_sale!['saleItems'] ?? []);
     final totalBags = saleItems.fold(
       0.0,
-      (sum, item) => sum + (item['quantity'] as num).toDouble(),
+      (sum, item) => sum + _toDouble(item['quantity']),
     );
 
     return Scaffold(
@@ -183,7 +189,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                     ),
                     const SizedBox(width: 16),
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () {
+                        if (_sale == null) return;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -193,10 +201,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                           if (val == true) _fetchSaleDetails();
                         });
                       },
-                      child: Icon(
-                        Icons.edit_outlined,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 24,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.edit_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
@@ -461,11 +472,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ...saleItems.map((item) {
-                              final qty = (item['quantity'] as num).toDouble();
-                              final rate = (item['rate'] as num).toDouble();
-                              final amt = (item['amount'] as num).toDouble();
-                              final bagSize =
-                                  (item['bagSize'] as num?)?.toDouble() ?? 0.0;
+                              final qty = _toDouble(item['quantity']);
+                              final rate = _toDouble(item['rate']);
+                              final amt = _toDouble(item['amount']);
+                              final bagSize = _toDouble(item['bagSize']);
 
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 16.0),

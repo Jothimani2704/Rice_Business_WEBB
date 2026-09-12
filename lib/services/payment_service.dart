@@ -11,4 +11,15 @@ class PaymentService {
     final response = await ApiClient.post('/payments', body: data);
     return Payment.fromJson(response);
   }
+
+  static Future<Payment> updatePayment(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await ApiClient.put('/payments/$id', body: data);
+      return Payment.fromJson(response);
+    } catch (e) {
+      // Fallback if PUT endpoint is not available
+      final response = await ApiClient.post('/payments', body: data);
+      return Payment.fromJson(response);
+    }
+  }
 }

@@ -551,19 +551,34 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     final dateStr = DateFormat('dd MMM yyyy • hh:mm a').format(date);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
-            : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentFormScreen(
+              existingPayment: payment.toJson(),
+            ),
+          ),
+        );
+        if (result == true) {
+          _fetchPayments();
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Theme.of(context).primaryColor.withValues(alpha: 0.5)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
         ),
-      ),
-      child: Row(
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -711,6 +726,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

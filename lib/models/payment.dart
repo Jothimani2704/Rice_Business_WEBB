@@ -45,4 +45,21 @@ class Payment {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'customerId': customerId,
+      'customerName': customerName,
+      'amount': amount,
+      'previousBalance': previousBalance,
+      'newBalance': newBalance,
+      'paymentMode': paymentMode,
+      'paymentDate': paymentDate.toIso8601String(),
+      'referenceNumber': referenceNumber,
+      'notes': notes,
+      'createdDate': createdDate.toIso8601String(),
+      'updatedDate': updatedDate?.toIso8601String(),
+    };
+  }
 }
