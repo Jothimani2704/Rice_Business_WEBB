@@ -6,6 +6,7 @@ import '../../services/product_service.dart';
 import '../../services/sale_service.dart';
 import '../../utils/app_events.dart';
 import '../../utils/app_toast.dart';
+import '../../utils/whatsapp_helper.dart';
 
 class SaleFormScreen extends StatefulWidget {
   final Map<String, dynamic>? existingSale;
@@ -1592,7 +1593,10 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
               ? 'Sale updated successfully!'
               : 'Sale completed successfully!',
         );
-        Navigator.pop(context, true);
+        await _showSuccessWhatsAppDialog();
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -1601,6 +1605,97 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
             .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  Future<void> _showSuccessWhatsAppDialog() async {
+    final custName = _selectedCustomer?['name'] ?? _selectedCustomer?['customerName'] ?? 'Customer';
+    final custPhone = _selectedCustomer?['mobileNumber'] ?? _selectedCustomer?['phone'];
+    final double prevBal = _toDouble(_selectedCustomer?['currentBalance'] ?? _selectedCustomer?['outstandingBalance'] ?? 0.0);
+    final double billDue = _totalAmount - _paidAmount;
+    final double totalOutstanding = prevBal + billDue;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
+              SizedBox(width: 10),
+              Text('Sale Completed'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Sale of ₹${numFormat.format(_totalAmount)} for $custName completed successfully.',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF25D366), size: 22),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Send WhatsApp sales invoice bill to customer?',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text('Done'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF25D366),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await WhatsAppHelper.shareSaleInvoice(
+                  context: context,
+                  customerName: custName,
+                  customerPhone: custPhone?.toString(),
+                  saleId: DateTime.now().millisecondsSinceEpoch.toString().substring(7),
+                  saleDate: DateTime.now(),
+                  items: _saleItems,
+                  totalAmount: _totalAmount,
+                  paidAmount: _paidAmount,
+                  balanceAmount: billDue,
+                  previousBalance: prevBal,
+                  totalOutstandingBalance: totalOutstanding,
+                  paymentMode: _paidAmount > 0 ? 'Cash / UPI' : null,
+                );
+              },
+              icon: const Icon(Icons.chat, size: 18),
+              label: const Text('Send Invoice'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

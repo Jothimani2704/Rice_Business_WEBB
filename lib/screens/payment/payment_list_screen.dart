@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/payment_service.dart';
+import '../../services/customer_service.dart';
 import '../../models/payment.dart';
+import '../../models/customer.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'payment_form_screen.dart';
 import '../../utils/app_events.dart';
@@ -39,13 +41,30 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     super.dispose();
   }
 
+  Map<int, String> _customerPhones = {};
+
   Future<void> _fetchPayments() async {
     setState(() => _isLoading = true);
     try {
-      final payments = await PaymentService.getPayments();
+      final paymentsFuture = PaymentService.getPayments();
+      final customersFuture = CustomerService.getCustomers();
+
+      final results = await Future.wait([paymentsFuture, customersFuture]);
+      final payments = results[0] as List<Payment>;
+      final rawCustomers = results[1] as List<dynamic>? ?? [];
+
+      Map<int, String> phoneMap = {};
+      for (var c in rawCustomers) {
+        final cust = Customer.fromJson(c);
+        if (cust.mobileNumber != null && cust.mobileNumber!.trim().isNotEmpty) {
+          phoneMap[cust.id] = cust.mobileNumber!.trim();
+        }
+      }
+
       setState(() {
         payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
         _payments = payments;
+        _customerPhones = phoneMap;
         _isLoading = false;
       });
     } catch (e) {
@@ -727,10 +746,14 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                               message: 'Share WhatsApp Receipt',
                               child: InkWell(
                                 onTap: () {
+                                  final phone = (payment.customerMobile != null && payment.customerMobile!.trim().isNotEmpty)
+                                      ? payment.customerMobile!.trim()
+                                      : _customerPhones[payment.customerId];
+
                                   WhatsAppHelper.sharePaymentReceipt(
                                     context: context,
                                     customerName: payment.customerName,
-                                    customerPhone: payment.customerMobile,
+                                    customerPhone: phone,
                                     amount: payment.amount,
                                     paymentDate: payment.paymentDate,
                                     paymentMode: payment.paymentMode,

@@ -6,6 +6,7 @@ import '../../models/customer.dart';
 import '../customer/customer_details_screen.dart';
 import '../payment/payment_form_screen.dart';
 import 'sale_form_screen.dart';
+import '../../utils/whatsapp_helper.dart';
 
 class SaleDetailScreen extends StatefulWidget {
   final int saleId;
@@ -182,10 +183,46 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.share_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (_sale == null) return;
+                        final items = (_sale!['saleItems'] as List?) ?? [];
+                        final tot = _toDouble(_sale!['totalAmount']);
+                        final pd = _toDouble(_sale!['paidAmount']);
+                        final bal = _toDouble(_sale!['balanceAmount']);
+                        final prevB = _toDouble(_sale!['previousBalance'] ?? _sale!['customerPreviousBalance']);
+                        final totOut = _toDouble(_sale!['totalOutstanding'] ?? _sale!['customerCurrentBalance']);
+
+                        WhatsAppHelper.shareSaleInvoice(
+                          context: context,
+                          customerName: (_sale!['customerName'] ?? 'Customer').toString(),
+                          customerPhone: (_sale!['customerPhone'] ?? _sale!['phone'] ?? _sale!['mobileNumber'])?.toString(),
+                          saleId: _sale!['id'],
+                          saleDate: saleDate,
+                          items: items,
+                          totalAmount: tot,
+                          paidAmount: pd,
+                          balanceAmount: bal,
+                          previousBalance: prevB > 0 ? prevB : null,
+                          totalOutstandingBalance: totOut > 0 ? totOut : null,
+                          paymentMode: _sale!['paymentMode'],
+                          notes: _sale!['notes'],
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF25D366).withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.4)),
+                        ),
+                        child: const Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          color: Color(0xFF25D366),
+                          size: 18,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     GestureDetector(

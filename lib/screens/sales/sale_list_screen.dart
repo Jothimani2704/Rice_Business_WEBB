@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/sale_service.dart';
+import '../../services/customer_service.dart';
+import '../../models/customer.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'sale_detail_screen.dart';
 import 'sale_form_screen.dart';
 import '../../utils/app_events.dart';
+import '../../utils/whatsapp_helper.dart';
 
 class SaleListScreen extends StatefulWidget {
   const SaleListScreen({super.key});
@@ -40,13 +43,30 @@ class _SaleListScreenState extends State<SaleListScreen> {
     super.dispose();
   }
 
+  Map<int, String> _customerPhones = {};
+
   Future<void> _fetchSales() async {
     setState(() => _isLoading = true);
     try {
-      final sales = await SaleService.getSales();
+      final salesFuture = SaleService.getSales();
+      final customersFuture = CustomerService.getCustomers();
+
+      final results = await Future.wait([salesFuture, customersFuture]);
+      final sales = results[0] as List<Map<String, dynamic>>;
+      final rawCustomers = results[1] as List<dynamic>? ?? [];
+
+      Map<int, String> phoneMap = {};
+      for (var c in rawCustomers) {
+        final cust = Customer.fromJson(c);
+        if (cust.mobileNumber != null && cust.mobileNumber!.trim().isNotEmpty) {
+          phoneMap[cust.id] = cust.mobileNumber!.trim();
+        }
+      }
+
       if (mounted) {
         setState(() {
           _sales = sales;
+          _customerPhones = phoneMap;
           _isLoading = false;
         });
       }
@@ -717,6 +737,54 @@ class _SaleListScreenState extends State<SaleListScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                Tooltip(
+                  message: 'Share WhatsApp Invoice',
+                  child: InkWell(
+                    onTap: () {
+                      final items = (sale['saleItems'] as List?) ?? [];
+                      final tot = (sale['totalAmount'] as num).toDouble();
+                      final pd = (sale['paidAmount'] as num).toDouble();
+                      final bal = (sale['balanceAmount'] as num).toDouble();
+                      final prevB = (sale['previousBalance'] as num?)?.toDouble() ?? (sale['customerPreviousBalance'] as num?)?.toDouble();
+                      final totOut = (sale['totalOutstanding'] as num?)?.toDouble() ?? (sale['customerCurrentBalance'] as num?)?.toDouble();
+
+                      final phone = (sale['customerPhone'] ?? sale['phone'] ?? sale['mobileNumber'] ?? _customerPhones[sale['customerId']])?.toString();
+
+                      WhatsAppHelper.shareSaleInvoice(
+                        context: context,
+                        customerName: (sale['customerName'] ?? 'Customer').toString(),
+                        customerPhone: phone,
+                        saleId: sale['id'],
+                        saleDate: DateTime.parse(sale['saleDate']),
+                        items: items,
+                        totalAmount: tot,
+                        paidAmount: pd,
+                        balanceAmount: bal,
+                        previousBalance: prevB,
+                        totalOutstandingBalance: totOut,
+                        paymentMode: sale['paymentMode'],
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF25D366).withValues(alpha: 0.18),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFF25D366).withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        color: Color(0xFF25D366),
+                        size: 15,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
                 Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurface, size: 24),
               ],
             ),
