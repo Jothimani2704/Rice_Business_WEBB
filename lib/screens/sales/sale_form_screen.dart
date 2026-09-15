@@ -1243,6 +1243,26 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
               const SizedBox(height: 16),
               Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
               const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Previous Balance',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    '₹${numFormat.format(currentBalance)}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               if (!_isEditMode) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1632,12 +1652,27 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       barrierDismissible: false,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF161C24)
+              : Theme.of(context).colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            ),
+          ),
           title: Row(
-            children: const [
-              Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
-              SizedBox(width: 10),
-              Text('Sale Completed'),
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF25D366), size: 28),
+              const SizedBox(width: 10),
+              Text(
+                'Sale Completed',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           content: Column(
@@ -1646,24 +1681,33 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
             children: [
               Text(
                 'Sale of ₹${numFormat.format(_totalAmount)} for $custName completed successfully.',
-                style: const TextStyle(fontSize: 14),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: const Color(0xFF25D366).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFF25D366).withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
-                  children: const [
-                    Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF25D366), size: 22),
-                    SizedBox(width: 10),
+                  children: [
+                    const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF25D366), size: 22),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Send WhatsApp sales invoice bill to customer?',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -1673,6 +1717,9 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
           ),
           actions: [
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.outline,
+              ),
               onPressed: () {
                 Navigator.pop(ctx);
               },
@@ -1683,7 +1730,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                 backgroundColor: const Color(0xFF25D366),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               onPressed: () async {
                 Navigator.pop(ctx);

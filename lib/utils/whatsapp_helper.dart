@@ -12,6 +12,7 @@ class WhatsAppHelper {
     required double amount,
     required DateTime paymentDate,
     required String paymentMode,
+    double? previousBalance,
     double? newBalance,
     String? referenceNumber,
     String? notes,
@@ -21,6 +22,7 @@ class WhatsAppHelper {
 
     final String dateStr = dateFormat.format(paymentDate);
     final String amountStr = '₹${numFormat.format(amount)}';
+    final String prevBalStr = previousBalance != null ? '₹${numFormat.format(previousBalance)}' : '';
     final String balanceStr = newBalance != null ? '₹${numFormat.format(newBalance)}' : '';
 
     final StringBuffer sb = StringBuffer();
@@ -32,6 +34,9 @@ class WhatsAppHelper {
     sb.writeln('💳 *Payment Mode:* $paymentMode');
     if (referenceNumber != null && referenceNumber.trim().isNotEmpty) {
       sb.writeln('📌 *Ref No:* ${referenceNumber.trim()}');
+    }
+    if (previousBalance != null) {
+      sb.writeln('📉 *Previous Balance:* $prevBalStr');
     }
     if (newBalance != null) {
       sb.writeln('📊 *Remaining Balance:* $balanceStr');

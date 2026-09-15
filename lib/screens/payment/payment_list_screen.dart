@@ -8,6 +8,7 @@ import '../../models/customer.dart';
 import '../../widgets/skeleton_loader.dart';
 import '../../widgets/whatsapp_icon.dart';
 import 'payment_form_screen.dart';
+import 'payment_detail_screen.dart';
 import '../../utils/app_events.dart';
 import '../../utils/whatsapp_helper.dart';
 
@@ -612,8 +613,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentFormScreen(
-              existingPayment: payment.toJson(),
+            builder: (context) => PaymentDetailScreen(
+              paymentId: payment.id,
+              initialPayment: payment,
             ),
           ),
         );

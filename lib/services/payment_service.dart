@@ -7,6 +7,15 @@ class PaymentService {
     return (response as List).map((p) => Payment.fromJson(p)).toList();
   }
 
+  static Future<Payment?> getPaymentById(int id) async {
+    try {
+      final response = await ApiClient.get('/payments/$id');
+      return Payment.fromJson(response);
+    } catch (e) {
+      return null;
+    }
+  }
+
   static Future<Payment> createPayment(Map<String, dynamic> data) async {
     final response = await ApiClient.post('/payments', body: data);
     return Payment.fromJson(response);
