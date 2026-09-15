@@ -5,6 +5,7 @@ import '../../services/sale_service.dart';
 import '../../services/customer_service.dart';
 import '../../models/customer.dart';
 import '../../widgets/skeleton_loader.dart';
+import '../../widgets/whatsapp_icon.dart';
 import 'sale_detail_screen.dart';
 import 'sale_form_screen.dart';
 import '../../utils/app_events.dart';
@@ -766,26 +767,9 @@ class _SaleListScreenState extends State<SaleListScreen> {
                       );
                     },
                     borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF25D366).withValues(alpha: 0.18),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF25D366).withValues(alpha: 0.4),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.chat_bubble_outline_rounded,
-                        color: Color(0xFF25D366),
-                        size: 15,
-                      ),
-                    ),
+                    child: const WhatsAppIcon(size: 26),
                   ),
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurface, size: 24),
               ],
             ),
             const SizedBox(height: 16),

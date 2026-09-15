@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../services/sale_service.dart';
 import '../../models/customer.dart';
+import '../../widgets/whatsapp_icon.dart';
 import '../customer/customer_details_screen.dart';
 import '../payment/payment_form_screen.dart';
 import 'sale_form_screen.dart';
@@ -111,6 +112,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     final totalAmount = _toDouble(_sale!['totalAmount']);
     final paidAmount = _toDouble(_sale!['paidAmount']);
     final balanceAmount = _toDouble(_sale!['balanceAmount']);
+    final customerCurrentBal = _toDouble(_sale!['customerCurrentBalance'] ?? _sale!['totalOutstanding']);
+    final prevBalance = _sale!['previousBalance'] != null
+        ? _toDouble(_sale!['previousBalance'])
+        : (customerCurrentBal > 0 ? (customerCurrentBal - balanceAmount) : 0.0);
 
     final isPartial = balanceAmount > 0 && paidAmount > 0;
     final isUnpaid = paidAmount == 0;
@@ -210,19 +215,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                           notes: _sale!['notes'],
                         );
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF25D366).withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.4)),
-                        ),
-                        child: const Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          color: Color(0xFF25D366),
-                          size: 18,
-                        ),
-                      ),
+                      child: const WhatsAppIcon(size: 28),
                     ),
                     const SizedBox(width: 16),
                     GestureDetector(
@@ -678,6 +671,28 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               'Balance Added to Customer',
                               balanceAmount,
                               Theme.of(context).colorScheme.primary,
+                              isBold: true,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.0,
+                              ),
+                              child: Divider(
+                                color: Theme.of(context).colorScheme.primary.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
+                            ),
+                            _buildSummaryRow(
+                              'Previous Customer Balance',
+                              prevBalance,
+                              Theme.of(context).colorScheme.outline,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSummaryRow(
+                              'Total Outstanding Balance',
+                              customerCurrentBal > 0 ? customerCurrentBal : (prevBalance + balanceAmount),
+                              Colors.redAccent,
                               isBold: true,
                             ),
                           ],

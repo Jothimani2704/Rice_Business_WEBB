@@ -6,6 +6,7 @@ import '../../services/customer_service.dart';
 import '../../models/payment.dart';
 import '../../models/customer.dart';
 import '../../widgets/skeleton_loader.dart';
+import '../../widgets/whatsapp_icon.dart';
 import 'payment_form_screen.dart';
 import '../../utils/app_events.dart';
 import '../../utils/whatsapp_helper.dart';
@@ -603,8 +604,8 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   Widget _buildPaymentCard(Payment payment) {
     final date = payment.paymentDate;
     final dateStr = DateFormat('dd MMM yyyy • hh:mm a').format(date);
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
@@ -636,7 +637,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -646,177 +647,149 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               child: Icon(
                 Icons.credit_score,
                 color: Theme.of(context).colorScheme.primary,
-                size: 24,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
                           'Payment #${payment.id}',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 13,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          dateStr,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Colors.blueAccent.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Text(
+                          payment.paymentMode,
+                          style: const TextStyle(
+                            color: Colors.blueAccent,
                             fontSize: 11,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          payment.customerName,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    dateStr,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 11,
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: Colors.blueAccent.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          child: Text(
-                            payment.paymentMode,
-                            style: const TextStyle(
-                              color: Colors.blueAccent,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                        if (payment.referenceNumber != null &&
-                            payment.referenceNumber!.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Ref: ${payment.referenceNumber}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.outline,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ],
+                  const SizedBox(height: 8),
+                  Text(
+                    payment.customerName,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              '₹${numFormat.format(payment.amount)}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Tooltip(
-                              message: 'Share WhatsApp Receipt',
-                              child: InkWell(
-                                onTap: () {
-                                  final phone = (payment.customerMobile != null && payment.customerMobile!.trim().isNotEmpty)
-                                      ? payment.customerMobile!.trim()
-                                      : _customerPhones[payment.customerId];
-
-                                  WhatsAppHelper.sharePaymentReceipt(
-                                    context: context,
-                                    customerName: payment.customerName,
-                                    customerPhone: phone,
-                                    amount: payment.amount,
-                                    paymentDate: payment.paymentDate,
-                                    paymentMode: payment.paymentMode,
-                                    newBalance: payment.newBalance,
-                                    referenceNumber: payment.referenceNumber,
-                                    notes: payment.notes,
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(20),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF25D366).withValues(alpha: 0.18),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: const Color(0xFF25D366).withValues(alpha: 0.4),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.chat_bubble_outline_rounded,
-                                    color: Color(0xFF25D366),
-                                    size: 15,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(Icons.more_vert, color: Theme.of(context).colorScheme.secondary, size: 20),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Previous ₹${numFormat.format(payment.previousBalance)}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Balance ₹${numFormat.format(payment.newBalance)}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Theme.of(context).colorScheme.secondary,
-                              size: 16,
-                            ),
-                          ],
-                        ),
-                      ],
+                  if (payment.referenceNumber != null &&
+                      payment.referenceNumber!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Ref: ${payment.referenceNumber}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.outline,
+                        fontSize: 11,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '₹${numFormat.format(payment.amount)}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Tooltip(
+                      message: 'Share WhatsApp Receipt',
+                      child: InkWell(
+                        onTap: () {
+                          final phone = (payment.customerMobile != null && payment.customerMobile!.trim().isNotEmpty)
+                              ? payment.customerMobile!.trim()
+                              : _customerPhones[payment.customerId];
+
+                          WhatsAppHelper.sharePaymentReceipt(
+                            context: context,
+                            customerName: payment.customerName,
+                            customerPhone: phone,
+                            amount: payment.amount,
+                            paymentDate: payment.paymentDate,
+                            paymentMode: payment.paymentMode,
+                            newBalance: payment.newBalance,
+                            referenceNumber: payment.referenceNumber,
+                            notes: payment.notes,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: const WhatsAppIcon(size: 24),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Previous ₹${numFormat.format(payment.previousBalance)}',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Balance ₹${numFormat.format(payment.newBalance)}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Theme.of(context).colorScheme.secondary,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),

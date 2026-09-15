@@ -332,7 +332,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         const SizedBox(height: 8),
         if (_isEditMode || _selectedCustomer != null)
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
@@ -344,8 +344,8 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     shape: BoxShape.circle,
@@ -359,48 +359,56 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                        fontSize: 16,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         _selectedCustomer!['name'],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         _selectedCustomer!['mobileNumber'] ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                       if (_isEditMode)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding: const EdgeInsets.only(top: 2.0),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.lock_outline,
                                 color: Theme.of(context).colorScheme.outline,
-                                size: 12,
+                                size: 11,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                'Customer cannot be changed',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.outline,
-                                  fontSize: 11,
+                              Expanded(
+                                child: Text(
+                                  'Customer cannot be changed',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.outline,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ),
                             ],
@@ -409,31 +417,36 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       'Current Balance',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.outline,
                         fontSize: 11,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       '₹${numFormat.format(_selectedCustomer!['currentBalance'] ?? _selectedCustomer!['outstandingBalance'] ?? 0)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
                 if (_isEditMode) ...[
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -444,7 +457,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                     child: Icon(
                       Icons.lock_outline,
                       color: Theme.of(context).colorScheme.primary,
-                      size: 20,
+                      size: 18,
                     ),
                   ),
                 ] else ...[

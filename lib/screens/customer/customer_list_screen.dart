@@ -1187,14 +1187,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                                       : FontWeight.normal,
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                Icons.more_vert,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                size: 20,
-                                              ),
                                             ],
                                           ),
                                           const SizedBox(height: 24),
