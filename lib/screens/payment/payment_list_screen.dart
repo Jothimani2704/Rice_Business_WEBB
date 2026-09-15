@@ -6,6 +6,7 @@ import '../../models/payment.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'payment_form_screen.dart';
 import '../../utils/app_events.dart';
+import '../../utils/whatsapp_helper.dart';
 
 class PaymentListScreen extends StatefulWidget {
   const PaymentListScreen({super.key});
@@ -722,6 +723,42 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
+                            Tooltip(
+                              message: 'Share WhatsApp Receipt',
+                              child: InkWell(
+                                onTap: () {
+                                  WhatsAppHelper.sharePaymentReceipt(
+                                    context: context,
+                                    customerName: payment.customerName,
+                                    customerPhone: payment.customerMobile,
+                                    amount: payment.amount,
+                                    paymentDate: payment.paymentDate,
+                                    paymentMode: payment.paymentMode,
+                                    newBalance: payment.newBalance,
+                                    referenceNumber: payment.referenceNumber,
+                                    notes: payment.notes,
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF25D366).withValues(alpha: 0.18),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFF25D366).withValues(alpha: 0.4),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    color: Color(0xFF25D366),
+                                    size: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
                             Icon(Icons.more_vert, color: Theme.of(context).colorScheme.secondary, size: 20),
                           ],
                         ),

@@ -2,6 +2,7 @@ class Payment {
   final int id;
   final int customerId;
   final String customerName;
+  final String? customerMobile;
   final double amount;
   final double previousBalance;
   final double newBalance;
@@ -16,6 +17,7 @@ class Payment {
     required this.id,
     required this.customerId,
     required this.customerName,
+    this.customerMobile,
     required this.amount,
     required this.previousBalance,
     required this.newBalance,
@@ -31,17 +33,18 @@ class Payment {
     return Payment(
       id: json['id'],
       customerId: json['customerId'],
-      customerName: json['customerName'],
+      customerName: json['customerName'] ?? 'Customer',
+      customerMobile: json['customerMobile'] ?? json['mobileNumber'] ?? json['phone'] ?? json['customerPhone'],
       amount: (json['amount'] ?? 0).toDouble(),
       previousBalance: (json['previousBalance'] ?? 0).toDouble(),
       newBalance: (json['newBalance'] ?? 0).toDouble(),
-      paymentMode: json['paymentMode'],
-      paymentDate: DateTime.parse(json['paymentDate']),
+      paymentMode: json['paymentMode'] ?? 'UPI',
+      paymentDate: DateTime.tryParse(json['paymentDate']?.toString() ?? '') ?? DateTime.now(),
       referenceNumber: json['referenceNumber'],
       notes: json['notes'],
-      createdDate: DateTime.parse(json['createdDate']),
+      createdDate: DateTime.tryParse(json['createdDate']?.toString() ?? '') ?? DateTime.now(),
       updatedDate: json['updatedDate'] != null
-          ? DateTime.parse(json['updatedDate'])
+          ? DateTime.tryParse(json['updatedDate'].toString())
           : null,
     );
   }
@@ -51,6 +54,7 @@ class Payment {
       'id': id,
       'customerId': customerId,
       'customerName': customerName,
+      'customerMobile': customerMobile,
       'amount': amount,
       'previousBalance': previousBalance,
       'newBalance': newBalance,

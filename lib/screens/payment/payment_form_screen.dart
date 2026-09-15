@@ -6,6 +6,7 @@ import '../../services/customer_service.dart';
 import '../../models/customer.dart';
 import '../../utils/app_events.dart';
 import '../../utils/app_toast.dart';
+import '../../utils/whatsapp_helper.dart';
 
 class PaymentFormScreen extends StatefulWidget {
   final Customer? preSelectedCustomer;
@@ -163,7 +164,10 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
               ? 'Payment correction applied successfully!'
               : 'Payment recorded successfully!',
         );
-        Navigator.pop(context, true);
+        await _showSuccessWhatsAppDialog();
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       print('Error saving payment: $e');
@@ -174,6 +178,100 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _showSuccessWhatsAppDialog() async {
+    final cust = _selectedCustomer;
+    final amt = _currentAmount;
+    final mode = _paymentMode;
+    final date = _paymentDate;
+    final ref = _referenceController.text;
+    final notes = _notesController.text;
+
+    double? newBal;
+    if (cust != null) {
+      newBal = cust.currentBalance - amt;
+    }
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
+              SizedBox(width: 10),
+              Text('Payment Recorded'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Payment of ₹${numFormat.format(amt)} for ${cust?.name ?? 'Customer'} recorded successfully.',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF25D366), size: 22),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Send payment receipt to customer via WhatsApp?',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text('Done'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF25D366),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await WhatsAppHelper.sharePaymentReceipt(
+                  context: context,
+                  customerName: cust?.name ?? 'Customer',
+                  customerPhone: cust?.mobileNumber,
+                  amount: amt,
+                  paymentDate: date,
+                  paymentMode: mode,
+                  newBalance: newBal,
+                  referenceNumber: ref,
+                  notes: notes,
+                );
+              },
+              icon: const Icon(Icons.chat, size: 18),
+              label: const Text('Send WhatsApp'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String _getInitials(String name) {
