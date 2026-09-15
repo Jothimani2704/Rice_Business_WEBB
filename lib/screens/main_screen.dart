@@ -91,6 +91,8 @@ class _MainScreenState extends State<MainScreen> {
           child: NavigationBar(
             selectedIndex: _currentIndex,
             onDestinationSelected: (index) {
+              // Reset the selected module tab to its first page (root list screen)
+              _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
               setState(() {
                 _currentIndex = index;
               });
