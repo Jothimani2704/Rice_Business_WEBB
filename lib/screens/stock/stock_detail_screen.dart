@@ -37,6 +37,17 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
       final summary = await StockService.getStockSummaryByProductId(
         widget.product['id'],
       );
+      // Sort history descending by transaction date & ID so most recent appears first
+      history.sort((a, b) {
+        final dateA = DateTime.tryParse(a['transactionDate']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final dateB = DateTime.tryParse(b['transactionDate']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+        int cmp = dateB.compareTo(dateA);
+        if (cmp != 0) return cmp;
+        final idA = (a['id'] ?? 0) as int;
+        final idB = (b['id'] ?? 0) as int;
+        return idB.compareTo(idA);
+      });
+
       if (mounted) {
         setState(() {
           _stockHistory = history;

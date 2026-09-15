@@ -27,6 +27,9 @@ class _StockFormScreenState extends State<StockFormScreen> {
   Map<String, dynamic>? _selectedProduct;
   final _quantityController = TextEditingController();
   final _remarksController = TextEditingController();
+  final _productSearchController = TextEditingController();
+  final FocusNode _productFocusNode = FocusNode();
+  bool _showProductOptions = false;
   DateTime _selectedDate = DateTime.now();
 
   final numFormat = NumberFormat('#,##,###');
@@ -62,11 +65,13 @@ class _StockFormScreenState extends State<StockFormScreen> {
               (p) => p['id'] == widget.transaction!['productId'],
               orElse: () => _products.first,
             );
+            _productSearchController.text = '${_selectedProduct!['name']} - ${_selectedProduct!['brand']}';
           } else if (widget.preselectedProduct != null) {
             _selectedProduct = _products.firstWhere(
               (p) => p['id'] == widget.preselectedProduct!['id'],
               orElse: () => _products.first,
             );
+            _productSearchController.text = '${_selectedProduct!['name']} - ${_selectedProduct!['brand']}';
           }
         });
       }
@@ -74,6 +79,15 @@ class _StockFormScreenState extends State<StockFormScreen> {
       if (mounted) setState(() => _isLoadingProducts = false);
       print(e);
     }
+  }
+
+  @override
+  void dispose() {
+    _quantityController.dispose();
+    _remarksController.dispose();
+    _productSearchController.dispose();
+    _productFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _saveTransaction() async {
@@ -157,12 +171,7 @@ class _StockFormScreenState extends State<StockFormScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _quantityController.dispose();
-    _remarksController.dispose();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -594,43 +603,196 @@ class _StockFormScreenState extends State<StockFormScreen> {
   }
 
   Widget _buildProductDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Map<String, dynamic>>(
-          isExpanded: true,
-          dropdownColor: Theme.of(context).colorScheme.surface,
-          hint: Text(
-            'Select rice product',
-            style: TextStyle(color: Theme.of(context).colorScheme.outline),
+    final query = _productSearchController.text.toLowerCase().trim();
+    final filtered = _products.where((p) {
+      final name = (p['name']?.toString() ?? '').toLowerCase();
+      final brand = (p['brand']?.toString() ?? '').toLowerCase();
+      return name.contains(query) || brand.contains(query);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black12
+                : Theme.of(context).colorScheme.surface,
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            ),
+            borderRadius: BorderRadius.circular(8),
           ),
-          value: _selectedProduct,
-          icon: Icon(
-            Icons.keyboard_arrow_down,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          items: _products.map((product) {
-            return DropdownMenuItem<Map<String, dynamic>>(
-              value: product,
-              child: Text(
-                '${product['name']} - ${product['brand']}',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          child: TextField(
+            controller: _productSearchController,
+            focusNode: _productFocusNode,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Type product or brand name to search...',
+              hintStyle: TextStyle(
+                color: Theme.of(context).colorScheme.outline,
+                fontSize: 14,
               ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedProduct = value;
-            });
-          },
+              prefixIcon: Icon(
+                Icons.search,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              suffixIcon: _productSearchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: Theme.of(context).colorScheme.outline,
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _productSearchController.clear();
+                          _selectedProduct = null;
+                          _showProductOptions = true;
+                        });
+                      },
+                    )
+                  : Icon(
+                      Icons.arrow_drop_down,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                _showProductOptions = true;
+              });
+            },
+            onChanged: (val) {
+              setState(() {
+                _showProductOptions = true;
+                if (_selectedProduct != null) {
+                  final selectedName = '${_selectedProduct!['name']} - ${_selectedProduct!['brand']}';
+                  if (val.trim() != selectedName.trim()) {
+                    _selectedProduct = null;
+                  }
+                }
+              });
+            },
+          ),
         ),
-      ),
+        if (_showProductOptions) ...[
+          const SizedBox(height: 6),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 220),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF161C24)
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: filtered.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'No matching products found',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.outline,
+                        fontSize: 13,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: filtered.length,
+                    separatorBuilder: (c, i) => Divider(
+                      height: 1,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = filtered[index];
+                      final isSelected = _selectedProduct?['id'] == product['id'];
+
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedProduct = product;
+                            _productSearchController.text = '${product['name']} - ${product['brand']}';
+                            _showProductOptions = false;
+                            _productFocusNode.unfocus();
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                ),
+                                child: Icon(
+                                  Icons.inventory_2_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${product['name']} - ${product['brand']}',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Stock: ${product['availableStock'] ?? product['currentStock'] ?? 0} bags',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.outline,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 18,
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ],
     );
   }
 
