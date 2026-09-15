@@ -142,12 +142,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.more_vert,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
-                    ),
                   ],
                 ),
               ),

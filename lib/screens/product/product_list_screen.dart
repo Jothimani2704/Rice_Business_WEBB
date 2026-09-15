@@ -6,6 +6,7 @@ import '../../services/product_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'product_form_screen.dart';
 import 'product_detail_screen.dart';
+import '../stock/stock_list_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -153,18 +154,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => StockAnalyticsModal(
+                            products: _products,
+                            numFormat: numFormat,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.add_box_outlined,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 24,
+                        child: Icon(
+                          Icons.insert_chart_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
@@ -224,21 +238,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 : null,
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.tune,
-                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ],
@@ -532,11 +531,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(
-                        Icons.more_vert,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 20,
-                      ),
                     ],
                   ),
                   Text(
@@ -669,6 +663,407 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class StockAnalyticsModal extends StatelessWidget {
+  final List<Map<String, dynamic>> products;
+  final NumberFormat numFormat;
+
+  const StockAnalyticsModal({
+    super.key,
+    required this.products,
+    required this.numFormat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final totalProducts = products.length;
+
+    final totalBags = products.fold<double>(
+      0.0,
+      (sum, p) => sum + ((p['currentStock'] as num?)?.toDouble() ?? 0.0),
+    );
+
+    final totalAssetValue = products.fold<double>(
+      0.0,
+      (sum, p) {
+        final stock = (p['currentStock'] as num?)?.toDouble() ?? 0.0;
+        final price = (p['sellingPrice'] as num?)?.toDouble() ?? 0.0;
+        return sum + (stock * price);
+      },
+    );
+
+    final inStockProducts = products.where((p) => p['status'] == 'In Stock').toList();
+    final lowStockProducts = products.where((p) => p['status'] == 'Low Stock').toList();
+    final outOfStockProducts = products.where((p) => p['status'] == 'Out of Stock').toList();
+
+    final inStockBags = inStockProducts.fold<double>(0.0, (sum, p) => sum + ((p['currentStock'] as num?)?.toDouble() ?? 0.0));
+    final lowStockBags = lowStockProducts.fold<double>(0.0, (sum, p) => sum + ((p['currentStock'] as num?)?.toDouble() ?? 0.0));
+    final outOfStockBags = outOfStockProducts.fold<double>(0.0, (sum, p) => sum + ((p['currentStock'] as num?)?.toDouble() ?? 0.0));
+
+    final inStockPercent = totalBags > 0 ? (inStockBags / totalBags) * 100 : 0.0;
+    final lowStockPercent = totalBags > 0 ? (lowStockBags / totalBags) * 100 : 0.0;
+    final outOfStockPercent = totalBags > 0 ? (outOfStockBags / totalBags) * 100 : 0.0;
+
+    Map<String, dynamic>? highestStockItem;
+    if (products.isNotEmpty) {
+      highestStockItem = products.reduce((a, b) {
+        final stockA = (a['currentStock'] as num?)?.toDouble() ?? 0.0;
+        final stockB = (b['currentStock'] as num?)?.toDouble() ?? 0.0;
+        return stockA >= stockB ? a : b;
+      });
+    }
+    final highestStockBags = (highestStockItem?['currentStock'] as num?)?.toDouble() ?? 0.0;
+    final highestStockProductName = (highestStockItem?['name'] ?? highestStockItem?['productName'] ?? 'None').toString();
+
+    final avgStockBags = totalProducts > 0 ? (totalBags / totalProducts).round() : 0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1C241E)
+            : Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.insert_chart_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Stock Analytics & Insights',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Total Stock Asset Value Gradient Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF1B2B20),
+                    Color(0xFF6E5336),
+                    Color(0xFFB58957),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'TOTAL STOCK ASSET VALUE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                      color: Color(0xFFE8C897),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '₹${numFormat.format(totalAssetValue)}',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFAF0E6),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.inventory_2_outlined,
+                        size: 16,
+                        color: Color(0xFFE8C897),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${numFormat.format(totalBags)} Total Bags  •  $totalProducts Products',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFFE8C897),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Section Title
+            Text(
+              'Stock Status Breakdown',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // In Stock Card
+            _buildStatusCard(
+              context: context,
+              icon: const Icon(
+                Icons.check_circle_outline_rounded,
+                color: Color(0xFF2E7D32),
+                size: 20,
+              ),
+              title: 'In Stock / Healthy (${inStockProducts.length})',
+              bags: inStockBags,
+              percentage: inStockPercent,
+              color: const Color(0xFF2E7D32),
+            ),
+            const SizedBox(height: 10),
+
+            // Low Stock Card
+            _buildStatusCard(
+              context: context,
+              icon: Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.amber.shade700,
+                size: 20,
+              ),
+              title: 'Low Stock (${lowStockProducts.length})',
+              bags: lowStockBags,
+              percentage: lowStockPercent,
+              color: Colors.amber.shade700,
+            ),
+            const SizedBox(height: 10),
+
+            // Out of Stock Card
+            _buildStatusCard(
+              context: context,
+              icon: const Icon(
+                Icons.remove_circle_outline_rounded,
+                color: Colors.redAccent,
+                size: 20,
+              ),
+              title: 'Out of Stock (${outOfStockProducts.length})',
+              bags: outOfStockBags,
+              percentage: outOfStockPercent,
+              color: Colors.redAccent,
+            ),
+            const SizedBox(height: 16),
+
+            // Bottom Metrics Row
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Highest Stock Item',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${numFormat.format(highestStockBags)} Bags',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          highestStockProductName,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Avg Stock per Product',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${numFormat.format(avgStockBags)} Bags',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFD4AF37),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard({
+    required BuildContext context,
+    required Widget icon,
+    required String title,
+    required num bags,
+    required double percentage,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  icon,
+                  const SizedBox(width: 10),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${numFormat.format(bags)} Bags',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '${percentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: percentage > 0 ? (percentage / 100).clamp(0.0, 1.0) : 0.0,
+              backgroundColor: color.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 5,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -160,11 +160,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.more_vert,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+
                   ],
                 ),
               ),
