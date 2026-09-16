@@ -13,6 +13,8 @@ import 'sales/sale_list_screen.dart';
 import 'payment/payment_list_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'app_lock_settings_screen.dart';
+import '../services/app_lock_service.dart';
+import '../main.dart';
 
 // import 'reports/reports_screen.dart';
 
@@ -728,9 +730,12 @@ class MoreMenuPlaceholder extends StatelessWidget {
 
         if (confirm == true) {
           if (context.mounted) {
-            await context.read<AuthProvider>().logout();
-            // Navigation is handled automatically by Consumer<AuthProvider> in main.dart.
-            // When _isAuthenticated becomes false, main.dart switches to LoginScreen.
+            final lockEnabled = await AppLockService.isLockEnabled();
+            if (lockEnabled) {
+              AppLockWrapper.lock(context);
+            } else {
+              await context.read<AuthProvider>().logout();
+            }
           }
         }
       },

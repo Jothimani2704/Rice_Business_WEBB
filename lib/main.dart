@@ -41,16 +41,15 @@ class RiceBusinessApp extends StatelessWidget {
               child: child!,
             );
           },
-          home: Consumer<AuthProvider>(
-            builder: (context, auth, _) {
-              if (auth.isLoading) {
-                return const DashboardSkeleton();
-              }
-              if (auth.isAuthenticated) {
-                return const AppLockWrapper(child: MainScreen());
-              }
-              return const LoginScreen();
-            },
+          home: AppLockWrapper(
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                if (auth.isLoading) {
+                  return const DashboardSkeleton();
+                }
+                return const MainScreen();
+              },
+            ),
           ),
         );
       },
@@ -62,6 +61,10 @@ class AppLockWrapper extends StatefulWidget {
   final Widget child;
   const AppLockWrapper({super.key, required this.child});
 
+  static void lock(BuildContext context) {
+    context.findAncestorStateOfType<_AppLockWrapperState>()?._lockApp();
+  }
+
   @override
   State<AppLockWrapper> createState() => _AppLockWrapperState();
 }
@@ -70,6 +73,12 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   bool _isUnlocked = false;
   bool _isCheckingLock = true;
   DateTime? _pausedTimestamp;
+
+  void _lockApp() {
+    setState(() {
+      _isUnlocked = false;
+    });
+  }
 
   @override
   void initState() {
