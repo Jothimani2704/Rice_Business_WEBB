@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../services/auth_service.dart';
 import '../services/token_storage.dart';
+import '../utils/api_exception.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isAuthenticated = false;
@@ -24,15 +25,24 @@ class AuthProvider with ChangeNotifier {
 
     final token = await TokenStorage.getToken();
     if (token != null && token.isNotEmpty) {
-      // Validate token by fetching user
-      final user = await AuthService.getCurrentUser();
-      if (user != null) {
-        _user = user;
-        _isAuthenticated = true;
-      } else {
-        _user = null;
-        await TokenStorage.deleteToken();
-        _isAuthenticated = false;
+      try {
+        final user = await AuthService.getCurrentUser();
+        if (user != null) {
+          _user = user;
+          _isAuthenticated = true;
+        } else {
+          _user = null;
+          await TokenStorage.deleteToken();
+          _isAuthenticated = false;
+        }
+      } catch (e) {
+        if (e is ApiException && e.statusCode == 401) {
+          _user = null;
+          await TokenStorage.deleteToken();
+          _isAuthenticated = false;
+        } else {
+          _isAuthenticated = true;
+        }
       }
     } else {
       _user = null;

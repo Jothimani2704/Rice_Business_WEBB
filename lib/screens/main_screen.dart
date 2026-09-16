@@ -12,6 +12,7 @@ import 'stock/stock_list_screen.dart';
 import 'sales/sale_list_screen.dart';
 import 'payment/payment_list_screen.dart';
 import 'dashboard/dashboard_screen.dart';
+import 'app_lock_settings_screen.dart';
 
 // import 'reports/reports_screen.dart';
 
@@ -391,10 +392,16 @@ class MoreMenuPlaceholder extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildMenuCard(
                   context,
-                  Icons.settings_outlined,
-                  'Settings',
-                  'Configure app preferences',
-                  () {},
+                  Icons.security_outlined,
+                  'App Security & Lock',
+                  'Configure Fingerprint & PIN lock',
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AppLockSettingsScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildLogoutCard(context),
 

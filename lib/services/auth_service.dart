@@ -24,7 +24,7 @@ class AuthService {
       final response = await ApiClient.get('/auth/me');
       return response;
     } catch (e) {
-      return null;
+      rethrow;
     }
   }
 
