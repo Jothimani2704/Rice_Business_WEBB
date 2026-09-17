@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/language_provider.dart';
+import '../services/auth_service.dart';
 import '../utils/app_toast.dart';
 import '../widgets/language_toggle_button.dart';
 import '../widgets/password_strength_meter.dart';
