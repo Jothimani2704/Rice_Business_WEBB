@@ -66,7 +66,7 @@ class AppLockService {
         localizedReason: 'Scan Fingerprint or Face ID to unlock Rice Business App',
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          biometricOnly: false,
           useErrorDialogs: true,
         ),
       );
