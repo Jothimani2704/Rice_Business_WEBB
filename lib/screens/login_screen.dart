@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/auth_provider.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -305,7 +306,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ],
                                   ),
                                   TextButton(
-                                    onPressed: () {},
+                                    onPressed: _showForgotPasswordDialog,
                                     child: Text(
                                       'Forgot Password?',
                                       style: TextStyle(
@@ -446,6 +447,262 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showForgotPasswordDialog() async {
+    final resetUsernameController = TextEditingController(text: _usernameController.text);
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    final dialogFormKey = GlobalKey<FormState>();
+
+    bool obscureNewPassword = true;
+    bool obscureConfirmPassword = true;
+    bool isResetting = false;
+    String? dialogError;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: !isResetting,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E2638)
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: _accentGold.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+              title: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: _accentGold.withValues(alpha: 0.2),
+                    radius: 20,
+                    child: Icon(Icons.lock_reset, color: _accentGold, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Reset Password',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 380,
+                  child: Form(
+                    key: dialogFormKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Enter your username and new password to reset account access.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Username or Email',
+                          style: TextStyle(
+                            color: _accentGold,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: resetUsernameController,
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            hintText: 'Username',
+                            prefixIcon: Icon(Icons.person, color: _accentGold, size: 20),
+                            filled: true,
+                            fillColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.grey.shade100,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          validator: (v) => v == null || v.trim().isEmpty ? 'Enter username' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'New Password',
+                          style: TextStyle(
+                            color: _accentGold,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: newPasswordController,
+                          obscureText: obscureNewPassword,
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            hintText: 'New Password',
+                            prefixIcon: Icon(Icons.lock_outline, color: _accentGold, size: 20),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureNewPassword ? Icons.visibility_off : Icons.visibility,
+                                color: _accentGold.withValues(alpha: 0.7),
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setDialogState(() {
+                                  obscureNewPassword = !obscureNewPassword;
+                                });
+                              },
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.grey.shade100,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Enter new password';
+                            if (v.length < 4) return 'Min 4 characters';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Confirm New Password',
+                          style: TextStyle(
+                            color: _accentGold,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: confirmPasswordController,
+                          obscureText: obscureConfirmPassword,
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            hintText: 'Confirm New Password',
+                            prefixIcon: Icon(Icons.lock, color: _accentGold, size: 20),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                color: _accentGold.withValues(alpha: 0.7),
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setDialogState(() {
+                                  obscureConfirmPassword = !obscureConfirmPassword;
+                                });
+                              },
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.grey.shade100,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          validator: (v) {
+                            if (v != newPasswordController.text) return 'Passwords do not match';
+                            return null;
+                          },
+                        ),
+                        if (dialogError != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            dialogError!,
+                            style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isResetting ? null : () => Navigator.pop(dialogContext),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isResetting
+                      ? null
+                      : () async {
+                          if (!dialogFormKey.currentState!.validate()) return;
+                          setDialogState(() {
+                            isResetting = true;
+                            dialogError = null;
+                          });
+
+                          try {
+                            final success = await AuthService.resetPassword(
+                              resetUsernameController.text.trim(),
+                              newPasswordController.text,
+                            );
+
+                            if (success && mounted) {
+                              Navigator.pop(dialogContext);
+                              setState(() {
+                                _usernameController.text = resetUsernameController.text.trim();
+                                _passwordController.text = newPasswordController.text;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Password reset successfully! You can now log in.'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setDialogState(() {
+                              isResetting = false;
+                              dialogError = e.toString().replaceAll('Exception: ', '');
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _accentGold,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isResetting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                        )
+                      : const Text(
+                          'RESET PASSWORD',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

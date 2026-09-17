@@ -58,4 +58,16 @@ class AuthService {
       rethrow;
     }
   }
+
+  static Future<bool> resetPassword(String username, String newPassword) async {
+    try {
+      final response = await ApiClient.post(
+        '/auth/reset-password',
+        body: {'username': username, 'newPassword': newPassword},
+      );
+      return response != null;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
