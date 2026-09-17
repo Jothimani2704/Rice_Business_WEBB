@@ -95,12 +95,21 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   }
 
   Future<void> _initialLockCheck() async {
-    final lockEnabled = await AppLockService.isLockEnabled();
-    if (mounted) {
-      setState(() {
-        _isUnlocked = !lockEnabled;
-        _isCheckingLock = false;
-      });
+    try {
+      final lockEnabled = await AppLockService.isLockEnabled();
+      if (mounted) {
+        setState(() {
+          _isUnlocked = !lockEnabled;
+          _isCheckingLock = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUnlocked = true;
+          _isCheckingLock = false;
+        });
+      }
     }
   }
 

@@ -23,34 +23,39 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final token = await TokenStorage.getToken();
-    if (token != null && token.isNotEmpty) {
-      try {
-        final user = await AuthService.getCurrentUser();
-        if (user != null) {
-          _user = user;
-          _isAuthenticated = true;
-        } else {
-          _user = null;
-          await TokenStorage.deleteToken();
-          _isAuthenticated = false;
+    try {
+      final token = await TokenStorage.getToken();
+      if (token != null && token.isNotEmpty) {
+        try {
+          final user = await AuthService.getCurrentUser();
+          if (user != null) {
+            _user = user;
+            _isAuthenticated = true;
+          } else {
+            _user = null;
+            await TokenStorage.deleteToken();
+            _isAuthenticated = false;
+          }
+        } catch (e) {
+          if (e is ApiException && e.statusCode == 401) {
+            _user = null;
+            await TokenStorage.deleteToken();
+            _isAuthenticated = false;
+          } else {
+            _isAuthenticated = true;
+          }
         }
-      } catch (e) {
-        if (e is ApiException && e.statusCode == 401) {
-          _user = null;
-          await TokenStorage.deleteToken();
-          _isAuthenticated = false;
-        } else {
-          _isAuthenticated = true;
-        }
+      } else {
+        _user = null;
+        _isAuthenticated = false;
       }
-    } else {
+    } catch (e) {
       _user = null;
       _isAuthenticated = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<bool> login(String username, String password) async {
