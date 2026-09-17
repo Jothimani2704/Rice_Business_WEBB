@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
 
   int _lockoutSecondsRemaining = 0;
+  int _failedAttemptsCount = 0;
   Timer? _lockoutTimer;
   String? _loginErrorMessage;
 
@@ -79,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           setState(() {
             _lockoutSecondsRemaining = 0;
+            _failedAttemptsCount = 0;
           });
         }
       }
@@ -101,6 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _lockoutSecondsRemaining = 0;
+          _failedAttemptsCount = 0;
           _loginErrorMessage = null;
         });
       }
@@ -116,27 +119,26 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       if (!mounted) return;
-      final errorMsg = authProvider.errorMessage;
+      _failedAttemptsCount++;
 
-      if (errorMsg.contains('60 seconds') || errorMsg.contains('locked') || errorMsg.contains('try again in')) {
+      final errorMsg = authProvider.errorMessage;
+      String displayMsg = '';
+
+      if (_failedAttemptsCount >= 5 || errorMsg.contains('60 seconds') || errorMsg.contains('locked') || errorMsg.contains('try again in')) {
         int secs = 60;
         final match = RegExp(r'(\d+)\s*second').firstMatch(errorMsg);
         if (match != null) {
           secs = int.tryParse(match.group(1)!) ?? 60;
         }
         _startLockoutTimer(secs);
-      }
-
-      String displayMsg = errorMsg;
-      if (languageProvider.isTamil) {
-        if (errorMsg.contains('Invalid username or password') || errorMsg.contains('Invalid credentials')) {
-          displayMsg = errorMsg
-              .replaceAll('Invalid credentials', 'தவறான பயனர் பெயர் அல்லது கடவுச்சொல்')
-              .replaceAll('Invalid username or password', 'தவறான பயனர் பெயர் அல்லது கடவுச்சொல்!')
-              .replaceAll('attempt(s) remaining before lockout', 'முயற்சிகள் மட்டுமே மீதமுள்ளன!');
-        } else if (errorMsg.contains('locked') || errorMsg.contains('Too many failed')) {
-          displayMsg = 'தொடர்ச்சியாக 5 முறை தவறான கடவுச்சொல்! கணக்கு 60 வினாடிகளுக்கு பூட்டப்பட்டுள்ளது.';
-        }
+        displayMsg = languageProvider.isTamil
+            ? 'அதிகபட்ச தவறான முயற்சிகள் (5/5)! கணக்கு 60 வினாடிகளுக்கு பூட்டப்பட்டது.'
+            : 'Too many failed attempts (5/5)! Account locked for 60 seconds.';
+      } else {
+        int remainingAttempts = 5 - _failedAttemptsCount;
+        displayMsg = languageProvider.isTamil
+            ? 'தவறான பயனர் பெயர் அல்லது கடவுச்சொல்! பூட்டுவதற்கு முன் $remainingAttempts வாய்ப்புகள் மட்டுமே மீதமுள்ளன.'
+            : 'Invalid credentials. $remainingAttempts attempt(s) remaining before lockout.';
       }
 
       // Show Top Toast Notification
