@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+
+  int _lockoutSecondsRemaining = 0;
+  Timer? _lockoutTimer;
 
   // Premium Color Palette
   final Color _accentGold = const Color(0xFFE5C07B);
@@ -49,7 +53,39 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _lockoutTimer?.cancel();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _startLockoutTimer(int seconds) {
+    _lockoutTimer?.cancel();
+    setState(() {
+      _lockoutSecondsRemaining = seconds;
+    });
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_lockoutSecondsRemaining > 1) {
+        if (mounted) {
+          setState(() {
+            _lockoutSecondsRemaining--;
+          });
+        }
+      } else {
+        timer.cancel();
+        if (mounted) {
+          setState(() {
+            _lockoutSecondsRemaining = 0;
+          });
+        }
+      }
+    });
+  }
+
   Future<void> _login() async {
+    if (_lockoutSecondsRemaining > 0) return;
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -58,9 +94,13 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text,
     );
 
-    // Navigation is handled automatically by Consumer<AuthProvider> in main.dart.
-    // When _isAuthenticated becomes true, main.dart switches to MainScreen.
     if (success) {
+      _lockoutTimer?.cancel();
+      if (mounted) {
+        setState(() {
+          _lockoutSecondsRemaining = 0;
+        });
+      }
       final prefs = await SharedPreferences.getInstance();
       if (_rememberMe) {
         await prefs.setString('saved_username', _usernameController.text.trim());
@@ -73,6 +113,15 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       if (!mounted) return;
+      final errorMsg = authProvider.errorMessage;
+      if (errorMsg.contains('60 seconds') || errorMsg.contains('locked') || errorMsg.contains('try again in')) {
+        int secs = 60;
+        final match = RegExp(r'(\d+)\s*second').firstMatch(errorMsg);
+        if (match != null) {
+          secs = int.tryParse(match.group(1)!) ?? 60;
+        }
+        _startLockoutTimer(secs);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage),
@@ -330,7 +379,52 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 24),
+                               if (_lockoutSecondsRemaining > 0) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.red.shade400, width: 1.5),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.shield_outlined, color: Colors.redAccent, size: 28),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              languageProvider.isTamil
+                                                  ? 'பாதுகாப்பு பூட்டு (Brute-Force Attack Prevention)'
+                                                  : 'Security Lockout (Brute-Force Prevention)',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.redAccent,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              languageProvider.isTamil
+                                                  ? '5 முறை தவறான கடவுச்சொல். ${_lockoutSecondsRemaining} வினாடிகளில் மீண்டும் முயற்சிக்கவும்.'
+                                                  : '5 consecutive failed attempts. Try again in ${_lockoutSecondsRemaining}s.',
+                                              style: TextStyle(
+                                                color: Theme.of(context).colorScheme.onSurface,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ] else
+                                const SizedBox(height: 24),
 
                               // Login Button
                               Container(
@@ -338,28 +432,39 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 56,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Theme.of(context).colorScheme.primary,
-                                        Theme.of(context).colorScheme.secondary,
-                                      ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                    ),
+                                  gradient: _lockoutSecondsRemaining > 0
+                                      ? LinearGradient(
+                                          colors: [
+                                            Colors.grey.shade700,
+                                            Colors.grey.shade800,
+                                          ],
+                                        )
+                                      : LinearGradient(
+                                          colors: [
+                                            Theme.of(context).colorScheme.primary,
+                                            Theme.of(context).colorScheme.secondary,
+                                          ],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                        ),
                                   border: Border.all(
-                                    color: _accentGold.withValues(alpha: 0.5),
+                                    color: _lockoutSecondsRemaining > 0
+                                        ? Colors.grey.shade600
+                                        : _accentGold.withValues(alpha: 0.5),
                                     width: 1,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: _accentGold.withValues(alpha: 0.2),
+                                      color: _lockoutSecondsRemaining > 0
+                                          ? Colors.transparent
+                                          : _accentGold.withValues(alpha: 0.2),
                                       blurRadius: 15,
                                       offset: const Offset(0, 5),
                                     ),
                                   ],
                                 ),
                                 child: ElevatedButton(
-                                  onPressed: isLoading ? null : _login,
+                                  onPressed: (isLoading || _lockoutSecondsRemaining > 0) ? null : _login,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
                                     shadowColor: Colors.transparent,
@@ -376,27 +481,43 @@ class _LoginScreenState extends State<LoginScreen> {
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              languageProvider.tr('login'),
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).colorScheme.onPrimary,
-                                                letterSpacing: 1.5,
-                                              ),
+                                      : _lockoutSecondsRemaining > 0
+                                          ? Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                const Icon(Icons.timer_outlined, color: Colors.white70, size: 20),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'LOCKED (${_lockoutSecondsRemaining}s)',
+                                                  style: const TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white70,
+                                                    letterSpacing: 1.2,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  languageProvider.tr('login'),
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Theme.of(context).colorScheme.onPrimary,
+                                                    letterSpacing: 1.5,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Icon(
+                                                  Icons.arrow_forward,
+                                                  color: Theme.of(context).colorScheme.onPrimary,
+                                                  size: 20,
+                                                ),
+                                              ],
                                             ),
-                                            const SizedBox(width: 8),
-                                            Icon(
-                                              Icons.arrow_forward,
-                                              color: Theme.of(context).colorScheme.onPrimary,
-                                              size: 20,
-                                            ),
-                                          ],
-                                        ),
                                 ),
                               ),
                               const SizedBox(height: 32),
