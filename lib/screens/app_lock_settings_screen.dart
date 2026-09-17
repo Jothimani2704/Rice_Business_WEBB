@@ -255,43 +255,6 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
                   ),
                 ),
 
-                // Auto-Lock Timeout Tile
-                Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? theme.primaryColor.withValues(alpha: 0.5)
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.05),
-                    ),
-                  ),
-                  child: ListTile(
-                    onTap: _selectTimeoutDialog,
-                    leading: Icon(
-                      Icons.timer_outlined,
-                      color: colorScheme.primary,
-                    ),
-                    title: const Text(
-                      'Auto-Lock Timeout',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      _autoLockTimeoutMinutes == 0
-                          ? 'Lock immediately when minimized'
-                          : 'Lock after $_autoLockTimeoutMinutes minute${_autoLockTimeoutMinutes > 1 ? 's' : ''} of inactivity',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.outline,
-                    ),
-                  ),
-                ),
-
                 // Biometrics Switch Tile
                 if (_canCheckBiometrics)
                   Container(
@@ -352,6 +315,43 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
                     ),
                     subtitle: Text(
                       _hasSavedPin ? 'Update 4-digit security code' : 'Create 4-digit security code',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.outline,
+                    ),
+                  ),
+                ),
+
+                // Auto-Lock Timeout Tile
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? theme.primaryColor.withValues(alpha: 0.5)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
+                    ),
+                  ),
+                  child: ListTile(
+                    onTap: _selectTimeoutDialog,
+                    leading: Icon(
+                      Icons.timer_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    title: const Text(
+                      'Auto-Lock Timeout',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      _autoLockTimeoutMinutes == 0
+                          ? 'Lock immediately when minimized'
+                          : 'Lock after $_autoLockTimeoutMinutes minute${_autoLockTimeoutMinutes > 1 ? 's' : ''} of inactivity',
                       style: const TextStyle(fontSize: 12),
                     ),
                     trailing: Icon(
