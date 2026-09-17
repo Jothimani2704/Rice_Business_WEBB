@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../../config/api_config.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
+import '../../widgets/language_toggle_button.dart';
+import '../../widgets/password_strength_meter.dart';
 import '../../utils/app_toast.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -155,11 +158,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final subtextColor = isDark ? Colors.white60 : Colors.black54;
     final iconColor = isDark ? Colors.white54 : Colors.black54;
 
+    final languageProvider = context.watch<LanguageProvider>();
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F1E16) : theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Edit Profile',
+          languageProvider.tr('editProfile'),
           style: TextStyle(
             color: colorScheme.primary,
             fontSize: 24,
@@ -174,10 +179,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           icon: Icon(Icons.arrow_back, color: colorScheme.primary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.help_outline, color: colorScheme.primary),
-            onPressed: () {},
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageToggleButton(),
           ),
         ],
       ),
@@ -298,7 +303,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
               // Profile Information Section
               Text(
-                'Profile Information',
+                languageProvider.tr('profileInformation'),
                 style: TextStyle(
                   color: colorScheme.primary,
                   fontSize: 18,
@@ -308,7 +313,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               const SizedBox(height: 16),
               _buildCustomTextField(
                 controller: _usernameController,
-                label: 'Username',
+                label: languageProvider.tr('username'),
                 placeholder: 'admin',
                 icon: Icons.person_outline,
                 suffixIcon: Icon(Icons.lock_outline, color: iconColor, size: 20),
@@ -322,7 +327,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               const SizedBox(height: 16),
               _buildCustomTextField(
                 controller: _storeNameController,
-                label: 'Store Name',
+                label: languageProvider.tr('storeName'),
                 placeholder: 'Vellore Rice Mart',
                 icon: Icons.storefront_outlined,
                 validator: (value) {
@@ -340,7 +345,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
               // Security Section
               Text(
-                'Security',
+                languageProvider.tr('security'),
                 style: TextStyle(
                   color: colorScheme.primary,
                   fontSize: 18,
@@ -349,7 +354,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Leave blank to keep your current password.',
+                languageProvider.tr('passwordHint'),
                 style: TextStyle(
                   color: subtextColor,
                   fontSize: 14,
@@ -358,8 +363,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               const SizedBox(height: 16),
               _buildCustomTextField(
                 controller: _currentPasswordController,
-                label: 'Current Password',
-                placeholder: 'Current Password',
+                label: languageProvider.tr('currentPassword'),
+                placeholder: languageProvider.tr('currentPassword'),
                 icon: Icons.lock_outline,
                 obscureText: _obscureCurrent,
                 suffixIcon: IconButton(
@@ -378,10 +383,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               const SizedBox(height: 16),
               _buildCustomTextField(
                 controller: _newPasswordController,
-                label: 'New Password',
-                placeholder: 'New Password',
+                label: languageProvider.tr('newPassword'),
+                placeholder: languageProvider.tr('newPassword'),
                 icon: Icons.key_outlined,
                 obscureText: _obscureNew,
+                onChanged: (val) => setState(() {}),
                 validator: (value) {
                   if (_currentPasswordController.text.isNotEmpty &&
                       (value == null || value.isEmpty)) {
@@ -402,11 +408,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   },
                 ),
               ),
+              PasswordStrengthMeter(password: _newPasswordController.text),
               const SizedBox(height: 16),
               _buildCustomTextField(
                 controller: _confirmPasswordController,
-                label: 'Confirm New Password',
-                placeholder: 'Confirm New Password',
+                label: languageProvider.tr('confirmPassword'),
+                placeholder: languageProvider.tr('confirmPassword'),
                 icon: Icons.security_outlined,
                 obscureText: _obscureConfirm,
                 validator: (value) {
@@ -477,7 +484,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ),
                       ),
                       child: Text(
-                        'Cancel',
+                        languageProvider.tr('cancel'),
                         style: TextStyle(
                           color: colorScheme.primary,
                           fontSize: 16,
@@ -508,9 +515,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                 color: isDark ? Colors.black : Colors.white,
                               ),
                             )
-                          : const Text(
-                              'Save Changes',
-                              style: TextStyle(
+                          : Text(
+                              languageProvider.tr('saveChanges'),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),

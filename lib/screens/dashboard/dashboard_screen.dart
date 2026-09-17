@@ -13,6 +13,8 @@ import '../customer/customer_form_screen.dart';
 import '../../utils/app_events.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
+import '../../widgets/language_toggle_button.dart';
 import '../../config/api_config.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -100,101 +102,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary
+                                    .withValues(alpha: 0.5),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.grass,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Consumer<AuthProvider>(
+                                  builder: (context, authProvider, _) {
+                                    final username = authProvider.user?['username'] ?? 'Admin';
+                                    return Text(
+                                      'Good Morning, $username',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    );
+                                  },
+                                ),
+                                Text(
+                                  DateFormat('EEEE, dd MMM')
+                                      .format(DateTime.now()),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Theme.of(context).colorScheme.outline,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Stack(
                       children: [
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Theme.of(context).colorScheme.primary
-                                  .withOpacity(0.5),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Icon(
-                            Icons.grass,
+                            Icons.notifications_none,
                             color: Theme.of(context).colorScheme.primary,
-                            size: 24,
+                            size: 20,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Good Morning, Admin',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.secondary,
+                              shape: BoxShape.circle,
                             ),
-                            Text(
-                              DateFormat('EEEE, dd MMMM')
-                                  .format(DateTime.now()),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Stack(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.notifications_none,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 20,
-                              ),
-                            ),
-                            Positioned(
-                              right: 8,
-                              top: 8,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.secondary,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 16),
-                        Consumer<AuthProvider>(
-                          builder: (context, authProvider, _) {
-                            final user = authProvider.user;
-                            final username = user?['username']?.toString() ?? 'AD';
-                            final profileImageUrl = ApiConfig.getImageUrl(user?['profileImageUrl']);
-                            final initials = username.length >= 2 ? username.substring(0, 2).toUpperCase() : 'AD';
-
-                            return CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Theme.of(context).primaryColor,
-                              backgroundImage: profileImageUrl != null ? NetworkImage(profileImageUrl) : null,
-                              child: profileImageUrl == null
-                                  ? Text(
-                                      initials,
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                  : null,
-                            );
-                          },
+                          ),
                         ),
                       ],
                     ),

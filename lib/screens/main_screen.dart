@@ -4,6 +4,8 @@ import 'package:rice_business_app/providers/theme_provider.dart';
 
 import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart';
+import '../widgets/language_toggle_button.dart';
 import 'profile/profile_edit_screen.dart';
 import 'login_screen.dart';
 import 'customer/customer_list_screen.dart';
@@ -61,6 +63,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = context.watch<LanguageProvider>();
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -100,31 +104,31 @@ class _MainScreenState extends State<MainScreen> {
                 _currentIndex = index;
               });
             },
-            destinations: const [
+            destinations: [
               NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard),
-                label: 'Dashboard',
+                icon: const Icon(Icons.dashboard_outlined),
+                selectedIcon: const Icon(Icons.dashboard),
+                label: languageProvider.tr('navDashboard'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.currency_rupee_outlined),
-                selectedIcon: Icon(Icons.currency_rupee),
-                label: 'Payments',
+                icon: const Icon(Icons.currency_rupee_outlined),
+                selectedIcon: const Icon(Icons.currency_rupee),
+                label: languageProvider.tr('navPayments'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.shopping_bag_outlined),
-                selectedIcon: Icon(Icons.shopping_bag),
-                label: 'Sales',
+                icon: const Icon(Icons.shopping_bag_outlined),
+                selectedIcon: const Icon(Icons.shopping_bag),
+                label: languageProvider.tr('navSales'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.people_outlined),
-                selectedIcon: Icon(Icons.people),
-                label: 'Customers',
+                icon: const Icon(Icons.people_outlined),
+                selectedIcon: const Icon(Icons.people),
+                label: languageProvider.tr('navCustomers'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.menu),
-                selectedIcon: Icon(Icons.menu),
-                label: 'Menu',
+                icon: const Icon(Icons.menu),
+                selectedIcon: const Icon(Icons.menu),
+                label: languageProvider.tr('navMenu'),
               ),
             ],
           ),
@@ -141,6 +145,7 @@ class MoreMenuPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final languageProvider = context.watch<LanguageProvider>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -384,7 +389,9 @@ class MoreMenuPlaceholder extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Appearance Section
-                _buildSectionTitle(context, 'Appearance'),
+                _buildSectionTitle(context, 'Appearance & Language'),
+                const SizedBox(height: 12),
+                _buildLanguageCard(context, languageProvider),
                 const SizedBox(height: 12),
                 _buildAppearanceCard(context, themeProvider),
                 const SizedBox(height: 24),
@@ -487,6 +494,52 @@ class MoreMenuPlaceholder extends StatelessWidget {
             Icon(Icons.chevron_right, color: colorScheme.onSurface, size: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageCard(BuildContext context, LanguageProvider languageProvider) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? theme.primaryColor.withValues(alpha: 0.5) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.language_outlined, color: colorScheme.primary, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  languageProvider.tr('selectLanguage'),
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                Text(
+                  languageProvider.isTamil ? 'தமிழ் (Tamil)' : 'English',
+                  style: TextStyle(color: colorScheme.outline, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          const LanguageToggleButton(),
+        ],
       ),
     );
   }

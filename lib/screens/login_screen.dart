@@ -6,7 +6,10 @@ import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/language_toggle_button.dart';
+import '../widgets/password_strength_meter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -83,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
+    final languageProvider = context.watch<LanguageProvider>();
 
     return Scaffold(
       body: Container(
@@ -110,6 +114,15 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Language Switcher Toggle
+                  const Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 16.0),
+                      child: LanguageToggleButton(),
+                    ),
+                  ),
+
                   // Logo Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -143,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Rice Business',
+                            languageProvider.tr('appName'),
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -158,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           Text(
-                            'Smart stock. Simple sales.',
+                            languageProvider.tr('appSubtitle'),
                             style: TextStyle(
                               fontSize: 14,
                               color: Theme.of(context).colorScheme.outline,
@@ -210,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Welcome Back',
+                                        languageProvider.tr('welcomeBack'),
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -218,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       ),
                                       Text(
-                                        'Sign in to continue',
+                                        languageProvider.tr('signInToContinue'),
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Theme.of(context)
@@ -234,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // Username Field
                               Text(
-                                'Username or Email',
+                                languageProvider.tr('username'),
                                 style: TextStyle(
                                   color: _accentGold,
                                   fontWeight: FontWeight.w600,
@@ -244,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 8),
                               _buildTextField(
                                 controller: _usernameController,
-                                hintText: 'Username or Email',
+                                hintText: languageProvider.tr('username'),
                                 icon: Icons.person,
                                 validator: (value) =>
                                     value == null || value.isEmpty
@@ -255,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // Password Field
                               Text(
-                                'Password',
+                                languageProvider.tr('currentPassword'),
                                 style: TextStyle(
                                   color: _accentGold,
                                   fontWeight: FontWeight.w600,
@@ -265,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 8),
                               _buildTextField(
                                 controller: _passwordController,
-                                hintText: 'Password',
+                                hintText: languageProvider.tr('currentPassword'),
                                 icon: Icons.lock,
                                 isPassword: true,
                                 validator: (value) =>
@@ -297,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Remember me',
+                                        languageProvider.tr('rememberMe'),
                                         style: TextStyle(
                                           color: Theme.of(context).colorScheme.outline,
                                           fontSize: 13,
@@ -308,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   TextButton(
                                     onPressed: _showForgotPasswordDialog,
                                     child: Text(
-                                      'Forgot Password?',
+                                      languageProvider.tr('forgotPassword'),
                                       style: TextStyle(
                                         color: _accentGold,
                                         decoration: TextDecoration.underline,
@@ -368,7 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              'LOGIN',
+                                              languageProvider.tr('login'),
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
@@ -551,6 +564,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextFormField(
                           controller: newPasswordController,
                           obscureText: obscureNewPassword,
+                          onChanged: (val) => setDialogState(() {}),
                           style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           decoration: InputDecoration(
                             hintText: 'New Password',
@@ -581,6 +595,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
+                        PasswordStrengthMeter(password: newPasswordController.text),
                         const SizedBox(height: 16),
                         Text(
                           'Confirm New Password',
