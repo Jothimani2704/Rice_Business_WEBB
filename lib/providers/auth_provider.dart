@@ -7,11 +7,13 @@ import '../utils/api_exception.dart';
 class AuthProvider with ChangeNotifier {
   bool _isAuthenticated = false;
   bool _isLoading = true;
+  bool _isInitialChecking = true;
   String _errorMessage = '';
   Map<String, dynamic>? _user;
 
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
+  bool get isInitialChecking => _isInitialChecking;
   String get errorMessage => _errorMessage;
   Map<String, dynamic>? get user => _user;
 
@@ -20,6 +22,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> _checkAuthStatus() async {
+    _isInitialChecking = true;
     _isLoading = true;
     notifyListeners();
 
@@ -54,6 +57,7 @@ class AuthProvider with ChangeNotifier {
       _isAuthenticated = false;
     } finally {
       _isLoading = false;
+      _isInitialChecking = false;
       notifyListeners();
     }
   }
@@ -72,7 +76,11 @@ class AuthProvider with ChangeNotifier {
         _errorMessage = 'Invalid username or password';
       }
     } catch (e) {
-      _errorMessage = e.toString();
+      if (e is ApiException) {
+        _errorMessage = e.message;
+      } else {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      }
     }
 
     _isLoading = false;

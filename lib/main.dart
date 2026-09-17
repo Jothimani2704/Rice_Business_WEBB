@@ -47,7 +47,7 @@ class RiceBusinessApp extends StatelessWidget {
           },
           home: Consumer<AuthProvider>(
             builder: (context, auth, _) {
-              if (auth.isLoading) {
+              if (auth.isInitialChecking) {
                 return const DashboardSkeleton();
               }
               if (!auth.isAuthenticated) {
