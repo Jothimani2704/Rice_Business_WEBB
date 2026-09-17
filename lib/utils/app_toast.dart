@@ -157,7 +157,7 @@ class _TopToastWidgetState extends State<_TopToastWidget>
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top + 16.0;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 12.0;
 
     return Positioned(
       top: topPadding,

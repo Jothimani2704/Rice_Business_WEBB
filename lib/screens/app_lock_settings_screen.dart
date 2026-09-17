@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/app_lock_service.dart';
+import '../utils/app_toast.dart';
 import 'app_lock_screen.dart';
 
 class AppLockSettingsScreen extends StatefulWidget {
@@ -86,45 +87,11 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
   }
 
   void _showSnackBar(String msg, {bool isError = false}) {
-    final topMargin = MediaQuery.of(context).size.height - 140;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                msg,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: topMargin > 100 ? topMargin : 100,
-          left: 16,
-          right: 16,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        backgroundColor: isError
-            ? Colors.redAccent
-            : const Color(0xFF2E7D32),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    if (isError) {
+      AppToast.showError(context, msg);
+    } else {
+      AppToast.showSuccess(context, msg);
+    }
   }
 
   @override
