@@ -41,15 +41,16 @@ class RiceBusinessApp extends StatelessWidget {
               child: child!,
             );
           },
-          home: AppLockWrapper(
-            child: Consumer<AuthProvider>(
-              builder: (context, auth, _) {
-                if (auth.isLoading) {
-                  return const DashboardSkeleton();
-                }
-                return const MainScreen();
-              },
-            ),
+          home: Consumer<AuthProvider>(
+            builder: (context, auth, _) {
+              if (auth.isLoading) {
+                return const DashboardSkeleton();
+              }
+              if (!auth.isAuthenticated) {
+                return const LoginScreen();
+              }
+              return const AppLockWrapper(child: MainScreen());
+            },
           ),
         );
       },
