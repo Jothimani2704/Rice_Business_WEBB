@@ -1611,21 +1611,30 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
             .toList(),
       };
 
+      Map<String, dynamic> result = {};
       if (_isEditMode) {
-        await SaleService.updateSale(widget.existingSale!['id'], saleData);
+        result = await SaleService.updateSale(widget.existingSale!['id'], saleData);
       } else {
-        await SaleService.createSale(saleData);
+        result = await SaleService.createSale(saleData);
       }
       
-      AppEvents.triggerRefresh(); // Trigger global data refresh
+      AppEvents.triggerRefresh();
 
       if (mounted) {
-        AppToast.showSuccess(
-          context,
-          _isEditMode
-              ? 'Sale updated successfully!'
-              : 'Sale completed successfully!',
-        );
+        final bool isOffline = result['isOffline'] == true;
+        if (isOffline) {
+          AppToast.showInfo(
+            context,
+            'Sale saved offline! Will auto-sync when online.',
+          );
+        } else {
+          AppToast.showSuccess(
+            context,
+            _isEditMode
+                ? 'Sale updated successfully!'
+                : 'Sale completed successfully!',
+          );
+        }
         await _showSuccessWhatsAppDialog();
         if (mounted) {
           Navigator.pop(context, true);

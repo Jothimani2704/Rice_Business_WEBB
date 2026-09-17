@@ -16,6 +16,7 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
   bool _canCheckBiometrics = false;
   bool _hasSavedPin = false;
   bool _isLoading = true;
+  int _autoLockTimeoutMinutes = 1;
 
   @override
   void initState() {
@@ -30,12 +31,14 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
     final bioEnabled = await AppLockService.isBiometricEnabled();
     final canBio = await AppLockService.canCheckBiometrics();
     final pin = await AppLockService.getPin();
+    final timeout = await AppLockService.getAutoLockTimeoutMinutes();
 
     setState(() {
       _isLockEnabled = lockEnabled;
       _isBiometricEnabled = bioEnabled;
       _canCheckBiometrics = canBio;
       _hasSavedPin = pin != null && pin.isNotEmpty;
+      _autoLockTimeoutMinutes = timeout;
       _isLoading = false;
     });
   }
@@ -91,6 +94,66 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
       AppToast.showError(context, msg);
     } else {
       AppToast.showSuccess(context, msg);
+    }
+  }
+
+  Future<void> _selectTimeoutDialog() async {
+    final options = [
+      {'label': 'Immediately (When Minimized)', 'value': 0},
+      {'label': '1 Minute of inactivity', 'value': 1},
+      {'label': '3 Minutes of inactivity', 'value': 3},
+      {'label': '5 Minutes of inactivity', 'value': 5},
+    ];
+
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text('Select Auto-Lock Timeout', style: TextStyle(fontWeight: FontWeight.bold)),
+          children: options.map((opt) {
+            final val = opt['value'] as int;
+            final label = opt['label'] as String;
+            final isSelected = val == _autoLockTimeoutMinutes;
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, val),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+
+    if (selected != null && selected != _autoLockTimeoutMinutes) {
+      await AppLockService.setAutoLockTimeoutMinutes(selected);
+      setState(() => _autoLockTimeoutMinutes = selected);
+      if (mounted) {
+        _showSnackBar(
+          selected == 0
+              ? 'Auto-lock set to Immediate'
+              : 'Auto-lock set to $selected minute${selected > 1 ? 's' : ''}',
+        );
+      }
     }
   }
 
@@ -192,8 +255,45 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
                   ),
                 ),
 
+                // Auto-Lock Timeout Tile
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? theme.primaryColor.withValues(alpha: 0.5)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
+                    ),
+                  ),
+                  child: ListTile(
+                    onTap: _selectTimeoutDialog,
+                    leading: Icon(
+                      Icons.timer_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    title: const Text(
+                      'Auto-Lock Timeout',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      _autoLockTimeoutMinutes == 0
+                          ? 'Lock immediately when minimized'
+                          : 'Lock after $_autoLockTimeoutMinutes minute${_autoLockTimeoutMinutes > 1 ? 's' : ''} of inactivity',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.outline,
+                    ),
+                  ),
+                ),
+
                 // Biometrics Switch Tile
-                if (_isLockEnabled && _canCheckBiometrics)
+                if (_canCheckBiometrics)
                   Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
@@ -227,40 +327,39 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
                   ),
 
                 // Change PIN Button
-                if (_isLockEnabled)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? theme.primaryColor.withValues(alpha: 0.5)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
                       color: isDark
-                          ? theme.primaryColor.withValues(alpha: 0.5)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.black.withValues(alpha: 0.05),
-                      ),
-                    ),
-                    child: ListTile(
-                      onTap: _promptCreatePin,
-                      leading: Icon(
-                        Icons.pin_rounded,
-                        color: colorScheme.primary,
-                      ),
-                      title: Text(
-                        _hasSavedPin ? 'Change Security PIN' : 'Set Security PIN',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: const Text(
-                        'Update 4-digit security code',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      trailing: Icon(
-                        Icons.chevron_right,
-                        color: colorScheme.outline,
-                      ),
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
                     ),
                   ),
+                  child: ListTile(
+                    onTap: _promptCreatePin,
+                    leading: Icon(
+                      Icons.pin_rounded,
+                      color: colorScheme.primary,
+                    ),
+                    title: Text(
+                      _hasSavedPin ? 'Change Security PIN' : 'Set Security PIN',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      _hasSavedPin ? 'Update 4-digit security code' : 'Create 4-digit security code',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.outline,
+                    ),
+                  ),
+                ),
               ],
             ),
     );

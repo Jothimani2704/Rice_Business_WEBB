@@ -1,11 +1,12 @@
 import 'api_client.dart';
+import 'offline_sync_service.dart';
 
 class ProductService {
   static Future<List<Map<String, dynamic>>> getProducts() async {
     try {
       final data = await ApiClient.get('/products');
 
-      return (data as List).map((p) {
+      final products = (data as List).map((p) {
         final currentStock = (p['currentStock'] as num?)?.toDouble() ?? 0.0;
         final minStock = (p['minimumStockLevel'] as num?)?.toDouble() ?? 0.0;
         final isActive = p['isActive'] as bool? ?? true;
@@ -19,9 +20,7 @@ class ProductService {
           status = 'Low Stock';
         }
 
-        // Mocking an image for now based on the brand/name since DB doesn't have it yet
-        String image =
-            'assets/images/products/vellore_gold_25kg.jpg'; // default
+        String image = 'assets/images/products/vellore_gold_25kg.jpg';
         final name = (p['productName'] as String?)?.toLowerCase() ?? '';
         final brand = (p['brandName'] as String?)?.toLowerCase() ?? '';
 
@@ -37,7 +36,7 @@ class ProductService {
           'id': p['id'],
           'name': p['productName'] ?? 'Unknown Product',
           'brand': p['brandName'] ?? 'Unknown Brand',
-          'weight': '${p['bagSize'] ?? 0} kg', // e.g. 25 kg
+          'weight': '${p['bagSize'] ?? 0} kg',
           'bagSize': (p['bagSize'] as num?)?.toDouble() ?? 0.0,
           'purchasePrice': (p['purchasePrice'] as num?)?.toDouble() ?? 0.0,
           'sellingPrice': (p['sellingPrice'] as num?)?.toDouble() ?? 0.0,
@@ -49,8 +48,15 @@ class ProductService {
           'minimumStockLevel': minStock,
         };
       }).toList();
+
+      await OfflineSyncService.cacheProducts(products);
+      return products;
     } catch (e) {
-      print('Error fetching products: $e');
+      print('Error fetching products from server, attempting offline cache: $e');
+      final cached = await OfflineSyncService.getCachedProducts();
+      if (cached.isNotEmpty) {
+        return cached;
+      }
       rethrow;
     }
   }

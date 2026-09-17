@@ -1,4 +1,5 @@
 import 'api_client.dart';
+import 'offline_sync_service.dart';
 
 class SaleService {
   static Future<List<Map<String, dynamic>>> getSales() async {
@@ -28,8 +29,8 @@ class SaleService {
       final result = await ApiClient.post('/sales', body: data);
       return result as Map<String, dynamic>;
     } catch (e) {
-      print('Error creating sale: $e');
-      rethrow;
+      print('Network/Server error in createSale: $e - fallback to offline save');
+      return await OfflineSyncService.savePendingSale(data);
     }
   }
 

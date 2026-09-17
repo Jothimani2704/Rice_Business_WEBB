@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../widgets/dashboard_stat_card.dart';
 import '../../widgets/quick_action_button.dart';
 import '../../services/dashboard_service.dart';
+import '../../services/offline_sync_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import '../sales/sale_form_screen.dart';
 import '../stock/stock_form_screen.dart';
@@ -24,6 +25,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _summary;
   bool _isLoading = true;
+  int _pendingOfflineCount = 0;
 
   @override
   void initState() {
@@ -40,9 +42,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchSummary() async {
     final data = await DashboardService.getSummary();
+    final offlineCount = await OfflineSyncService.getPendingSalesCount();
     if (mounted) {
       setState(() {
         _summary = data;
+        _pendingOfflineCount = offlineCount;
         _isLoading = false;
       });
     }
@@ -197,6 +201,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
+
+                if (_pendingOfflineCount > 0) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.cloud_off_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$_pendingOfflineCount Offline Bill${_pendingOfflineCount > 1 ? 's' : ''} Pending Sync',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Bills saved locally. Will auto-sync when online.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final synced = await OfflineSyncService.syncPendingSales(
+                              context: context,
+                            );
+                            _fetchSummary();
+                          },
+                          icon: const Icon(Icons.sync_rounded, size: 16),
+                          label: const Text(
+                            'Sync Now',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 Container(
                   width: double.infinity,

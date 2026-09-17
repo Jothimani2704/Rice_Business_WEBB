@@ -1,12 +1,21 @@
 import 'api_client.dart';
+import 'offline_sync_service.dart';
 
 class CustomerService {
   static Future<List<dynamic>?> getCustomers() async {
     try {
       final response = await ApiClient.get('/customers');
+      if (response != null && response is List) {
+        final customersList = List<Map<String, dynamic>>.from(response);
+        await OfflineSyncService.cacheCustomers(customersList);
+      }
       return response;
     } catch (e) {
-      print('Error fetching customers: $e');
+      print('Error fetching customers from server, attempting offline cache: $e');
+      final cached = await OfflineSyncService.getCachedCustomers();
+      if (cached.isNotEmpty) {
+        return cached;
+      }
       return null;
     }
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/app_lock_screen.dart';
 import 'services/app_lock_service.dart';
+import 'services/offline_sync_service.dart';
 import 'widgets/skeleton_loader.dart';
 
 void main() {
@@ -66,6 +68,10 @@ class AppLockWrapper extends StatefulWidget {
     context.findAncestorStateOfType<_AppLockWrapperState>()?._lockApp();
   }
 
+  static void resetTimer(BuildContext context) {
+    context.findAncestorStateOfType<_AppLockWrapperState>()?._resetInactivityTimer();
+  }
+
   @override
   State<AppLockWrapper> createState() => _AppLockWrapperState();
 }
@@ -74,8 +80,11 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   bool _isUnlocked = false;
   bool _isCheckingLock = true;
   DateTime? _pausedTimestamp;
+  Timer? _inactivityTimer;
+  Timer? _autoSyncTimer;
 
   void _lockApp() {
+    _inactivityTimer?.cancel();
     setState(() {
       _isUnlocked = false;
     });
@@ -86,12 +95,32 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initialLockCheck();
+    _startAutoSyncWorker();
   }
 
   @override
   void dispose() {
+    _inactivityTimer?.cancel();
+    _autoSyncTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _startAutoSyncWorker() {
+    _autoSyncTimer?.cancel();
+    // Run initial sync after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        OfflineSyncService.syncPendingSales(context: context);
+      }
+    });
+
+    // Periodically sync every 30 seconds
+    _autoSyncTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        OfflineSyncService.syncPendingSales(context: context);
+      }
+    });
   }
 
   Future<void> _initialLockCheck() async {
@@ -102,6 +131,9 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
           _isUnlocked = !lockEnabled;
           _isCheckingLock = false;
         });
+        if (_isUnlocked) {
+          _resetInactivityTimer();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -113,10 +145,38 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
     }
   }
 
+  Future<void> _resetInactivityTimer() async {
+    _inactivityTimer?.cancel();
+    if (!_isUnlocked) return;
+
+    try {
+      final lockEnabled = await AppLockService.isLockEnabled();
+      if (!lockEnabled) return;
+
+      final timeoutMinutes = await AppLockService.getAutoLockTimeoutMinutes();
+      if (timeoutMinutes <= 0) return;
+
+      _inactivityTimer = Timer(Duration(minutes: timeoutMinutes), () {
+        if (mounted && _isUnlocked) {
+          _lockApp();
+        }
+      });
+    } catch (e) {
+      // Ignore timer errors
+    }
+  }
+
+  void _onUserInteraction() {
+    if (_isUnlocked) {
+      _resetInactivityTimer();
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       _pausedTimestamp = DateTime.now();
+      _inactivityTimer?.cancel();
     } else if (state == AppLifecycleState.resumed) {
       _handleResumed();
     }
@@ -131,8 +191,6 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
       return;
     }
 
-    // Only re-lock if the app was actually in background (paused) for more than 2 seconds.
-    // Short pauses (like OS system dialogs / fingerprint overlay popping up) will NOT re-lock!
     if (_pausedTimestamp != null) {
       final elapsedSeconds = DateTime.now().difference(_pausedTimestamp!).inSeconds;
       _pausedTimestamp = null;
@@ -140,7 +198,12 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
         setState(() {
           _isUnlocked = false;
         });
+        return;
       }
+    }
+
+    if (_isUnlocked) {
+      _resetInactivityTimer();
     }
   }
 
@@ -156,10 +219,16 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
           setState(() {
             _isUnlocked = true;
           });
+          _resetInactivityTimer();
         },
       );
     }
 
-    return widget.child;
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _onUserInteraction(),
+      onPointerMove: (_) => _onUserInteraction(),
+      child: widget.child,
+    );
   }
 }

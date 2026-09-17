@@ -8,6 +8,7 @@ class AppLockService {
   static const String _keyLockEnabled = 'app_lock_enabled';
   static const String _keyBiometricEnabled = 'app_lock_biometric_enabled';
   static const String _keyPin = 'app_lock_pin';
+  static const String _keyAutoLockTimeout = 'app_lock_auto_lock_timeout_minutes';
 
   static Future<bool> isLockEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -37,6 +38,16 @@ class AppLockService {
   static Future<void> setPin(String pin) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyPin, pin);
+  }
+
+  static Future<int> getAutoLockTimeoutMinutes() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyAutoLockTimeout) ?? 1; // Default: 1 minute
+  }
+
+  static Future<void> setAutoLockTimeoutMinutes(int minutes) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyAutoLockTimeout, minutes);
   }
 
   static Future<bool> canCheckBiometrics() async {
