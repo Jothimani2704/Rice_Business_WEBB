@@ -28,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   int _lockoutSecondsRemaining = 0;
   Timer? _lockoutTimer;
+  String? _loginErrorMessage;
 
   // Premium Color Palette
   final Color _accentGold = const Color(0xFFE5C07B);
@@ -84,6 +85,102 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Future<void> _showErrorAlertDialog(String rawErrorMessage) async {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    
+    String displayTitle = languageProvider.isTamil
+        ? '⚠️ தவறான உள்நுழைவு (Login Failed)'
+        : '⚠️ Login Failed';
+        
+    String displayMessage = rawErrorMessage;
+    if (rawErrorMessage.contains('Invalid username or password') || rawErrorMessage.contains('Invalid credentials')) {
+      if (languageProvider.isTamil) {
+        displayMessage = rawErrorMessage
+            .replaceAll('Invalid credentials', 'தவறான பயனர் பெயர் அல்லது கடவுச்சொல்')
+            .replaceAll('Invalid username or password', 'தவறான பயனர் பெயர் அல்லது கடவுச்சொல்!')
+            .replaceAll('attempt(s) remaining before lockout', 'முயற்சிகள் மட்டுமே மீதமுள்ளன!');
+      }
+    } else if (rawErrorMessage.contains('locked') || rawErrorMessage.contains('Too many failed')) {
+      if (languageProvider.isTamil) {
+        displayMessage = 'தொடர்ச்சியாக 5 முறை தவறான கடவுச்சொல்! கணக்கு 60 வினாடிகளுக்கு தற்காலிகமாக பூட்டப்பட்டுள்ளது.';
+      }
+    }
+
+    await showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E2638)
+            : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.red.shade400, width: 1.5),
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.red.withValues(alpha: 0.2),
+              radius: 20,
+              child: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                displayTitle,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              displayMessage,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              languageProvider.isTamil
+                  ? 'தயவுசெய்து உங்கள் பயனர் பெயர் (Username) மற்றும் கடவுச்சொல்லை (Password) சரிபார்த்து மீண்டும் முயற்சிக்கவும்.'
+                  : 'Please check your username & password credentials and try again.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              languageProvider.isTamil ? 'சரி (OK)' : 'OK',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _login() async {
     if (_lockoutSecondsRemaining > 0) return;
     if (!_formKey.currentState!.validate()) return;
@@ -99,6 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _lockoutSecondsRemaining = 0;
+          _loginErrorMessage = null;
         });
       }
       final prefs = await SharedPreferences.getInstance();
@@ -114,6 +212,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       if (!mounted) return;
       final errorMsg = authProvider.errorMessage;
+      setState(() {
+        _loginErrorMessage = errorMsg;
+      });
+
       if (errorMsg.contains('60 seconds') || errorMsg.contains('locked') || errorMsg.contains('try again in')) {
         int secs = 60;
         final match = RegExp(r'(\d+)\s*second').firstMatch(errorMsg);
@@ -122,6 +224,10 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         _startLockoutTimer(secs);
       }
+
+      // Show Popup Alert Dialog
+      _showErrorAlertDialog(errorMsg);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage),
@@ -292,7 +398,43 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 32),
+                              const SizedBox(height: 24),
+
+                              if (_loginErrorMessage != null && _lockoutSecondsRemaining == 0) ...[
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 20),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.red.shade400, width: 1.2),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 24),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          _loginErrorMessage!,
+                                          style: const TextStyle(
+                                            color: Colors.redAccent,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _loginErrorMessage = null;
+                                          });
+                                        },
+                                        child: const Icon(Icons.close, color: Colors.redAccent, size: 18),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
 
                               // Username Field
                               Text(
@@ -337,10 +479,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
 
                               const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 12,
+                                runSpacing: 8,
                                 children: [
                                   Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       SizedBox(
                                         width: 24,
@@ -369,10 +515,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   TextButton(
                                     onPressed: _showForgotPasswordDialog,
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
                                     child: Text(
                                       languageProvider.tr('forgotPassword'),
                                       style: TextStyle(
                                         color: _accentGold,
+                                        fontSize: 13,
                                         decoration: TextDecoration.underline,
                                       ),
                                     ),
