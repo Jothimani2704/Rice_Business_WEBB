@@ -8,6 +8,7 @@ import '../../widgets/skeleton_loader.dart';
 import '../payment/payment_form_screen.dart';
 import '../sales/sale_form_screen.dart';
 import 'customer_form_screen.dart';
+import 'customer_ledger_statement_screen.dart';
 
 class CustomerDetailsScreen extends StatefulWidget {
   final dynamic customer;
@@ -460,15 +461,16 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                     _loadData();
                                   },
                                 ),
-                                _buildActionBtn(
-                                  'View Ledger',
+                                 _buildActionBtn(
+                                  'Ledger\nStatement',
                                   Icons.menu_book,
                                   () {
-                                    _loadData();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Ledger refreshed. View recent transactions below.'),
-                                        behavior: SnackBarBehavior.floating,
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CustomerLedgerStatementScreen(
+                                          customer: widget.customer,
+                                        ),
                                       ),
                                     );
                                   },
@@ -506,21 +508,33 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'View All',
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        fontSize: 14,
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CustomerLedgerStatementScreen(
+                                          customer: widget.customer,
+                                        ),
                                       ),
-                                    ),
-                                    Icon(
-                                      Icons.chevron_right,
-                                      color: Theme.of(context).colorScheme.primary,
-                                      size: 18,
-                                    ),
-                                  ],
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        'View All',
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        size: 18,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

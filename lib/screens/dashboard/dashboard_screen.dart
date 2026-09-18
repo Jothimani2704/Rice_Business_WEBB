@@ -10,6 +10,7 @@ import '../sales/sale_form_screen.dart';
 import '../stock/stock_form_screen.dart';
 import '../payment/payment_form_screen.dart';
 import '../customer/customer_form_screen.dart';
+import '../reports/reports_analytics_screen.dart';
 import '../../utils/app_events.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -269,98 +270,131 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).colorScheme.primary,
-                        Theme.of(context).colorScheme.secondary,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Today\'s Business',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '₹${numFormat.format(todaysSalesAmount)}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Text(
-                                  'Sales',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.arrow_upward,
-                                        color: Theme.of(context).colorScheme.onPrimary,
-                                        size: 12,
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        '+% Today',
-                                        style: TextStyle(
-                                          color: Theme.of(context).colorScheme.onPrimary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ReportsAnalyticsScreen(),
                       ),
-                      Icon(
-                        Icons.bar_chart,
-                        size: 80,
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
                         color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
+                        width: 1,
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Today\'s Business',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.auto_graph_rounded, color: Colors.white, size: 14),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Analytics 📊',
+                                          style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '₹${numFormat.format(todaysSalesAmount)}',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Sales',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.arrow_upward,
+                                          color: Theme.of(context).colorScheme.onPrimary,
+                                          size: 12,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          '+% Today',
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.onPrimary,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.bar_chart,
+                          size: 70,
+                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
