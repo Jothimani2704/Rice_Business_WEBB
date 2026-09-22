@@ -42,7 +42,7 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
 
     final results = await Future.wait([
       ReportsService.getFinancialSummary(_selectedPeriod),
-      DashboardService.getDashboardSummary(),
+      DashboardService.getSummary(),
     ]);
 
     if (mounted) {
@@ -122,10 +122,10 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        AppToast.show(context, 'Could not open WhatsApp', isError: true);
+        AppToast.showError(context, 'Could not open WhatsApp');
       }
     } catch (e) {
-      AppToast.show(context, 'Error launching WhatsApp: $e', isError: true);
+      AppToast.showError(context, 'Error launching WhatsApp: $e');
     }
   }
 
@@ -147,11 +147,11 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        header: (context) => pw.Column(
-          cross: pw.CrossAxisAlignment.start,
+        header: (pw.Context context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Row(
-              main: pw.MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text('RICE BUSINESS - FINANCIAL ANALYTICS', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.teal800)),
                 pw.Text('Date: ${dateFormat.format(DateTime.now())}', style: const pw.TextStyle(fontSize: 10)),
@@ -237,11 +237,12 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
             ],
           ];
         },
-        footer: (context) => pw.Column(
+        footer: (pw.Context context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Divider(thickness: 0.5, color: PdfColors.grey400),
             pw.Row(
-              main: pw.MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text('Rice Business Analytics System', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                 pw.Text('Page ${context.pageNumber} of ${context.pagesCount}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
@@ -268,7 +269,7 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
           border: pw.Border.all(color: PdfColors.grey300),
         ),
         child: pw.Column(
-          cross: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(title, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
             pw.SizedBox(height: 4),
